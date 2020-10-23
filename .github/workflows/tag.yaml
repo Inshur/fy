@@ -34,4 +34,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: "${TAGS}"
+          # failing to use a variable here for some reason:
+          # Error: buildx call failed with: invalid tag "${TAGS}": invalid reference format
+          tags: inshur/fy:latest
