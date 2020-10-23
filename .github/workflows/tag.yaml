@@ -16,6 +16,8 @@ jobs:
           echo "IMAGE_VERSION=${IMAGE_VERSION}" >> ${GITHUB_ENV}
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
           echo $TAGS
+          echo ::set-output name=tags::${TAGS}
+
 
       - name: Check out repo
         uses: actions/checkout@v2
@@ -36,4 +38,5 @@ jobs:
           push: true
           # failing to use a variable here for some reason:
           # Error: buildx call failed with: invalid tag "${TAGS}": invalid reference format
-          tags: inshur/fy:latest
+          #tags: inshur/fy:latest
+          tags: ${{ steps.prep.outputs.tags }}
