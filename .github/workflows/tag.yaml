@@ -14,7 +14,12 @@ jobs:
 
       - name: Extract Tag
         id: get_tag_name
-        run: echo "IMAGE_VERSION=${GITHUB_REF/refs\/tags\//}" >> ${GITHUB_ENV}
+        run: |
+          echo "IMAGE_VERSION=${GITHUB_REF/refs\/tags\//}" >> ${GITHUB_ENV}
+
+      - name: Test
+        run: |
+          echo $IMAGE_VERSION
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v1
