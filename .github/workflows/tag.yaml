@@ -33,4 +33,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/inshur/fy:1.0.2
+          tags: ${TAGS}
