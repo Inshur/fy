@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "fy"
+version = "1.0.2"
+description = ""
+authors = ["Rob Wilson <roobert@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+sh = "^1.12.14"
+pyyaml = "^5.3"
+
+[tool.poetry.dev-dependencies]
+
+[tool.dephell.main]
+from = {format = "poetry", path = "pyproject.toml"}
+to = {format = "setuppy", path = "setup.py"}
+
+[tool.poetry.scripts]
+fy = 'fy.__main__:main'
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
