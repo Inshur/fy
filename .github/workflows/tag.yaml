@@ -14,14 +14,13 @@ jobs:
 
       - name: Extract Tags
         run: |
-          TAGS="ghcr.io/${{ github.repository }}:${{ github.sha }}"
-          if [[ $GITHUB_REF == ref/head/master ]]; then
-            TAGS="$TAGS,ghcr.io/${{ github.repository }}:latest"
-          fi
-          if [[ -n $IMAGE_VERSION ]]; then
-            TAGS="$TAGS,ghcr.io/${{ github.repository }}:$IMAGE_VERSION"
-          fi
-          echo ::set-output name=tags::${TAGS}
+          #TAGS="ghcr.io/${{ github.repository }}:${{ github.sha }}"
+          #if [[ $GITHUB_REF == ref/head/master ]]; then
+          #  TAGS="$TAGS,ghcr.io/${{ github.repository }}:latest"
+          #fi
+
+          IMAGE_VERSION="${GITHUB_REF/refs\/tags\//}"
+          TAGS="ghcr.io/${{ github.repository }}:$IMAGE_VERSION"
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
           echo $TAGS
 
