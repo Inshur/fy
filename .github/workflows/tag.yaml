@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Extract Tags
+        id: tags
         run: |
           IMAGE_VERSION="${GITHUB_REF/refs\/tags\//}"
           TAGS="inshur/fy:$IMAGE_VERSION"
@@ -39,4 +40,4 @@ jobs:
           # failing to use a variable here for some reason:
           # Error: buildx call failed with: invalid tag "${TAGS}": invalid reference format
           #tags: inshur/fy:latest
-          tags: ${{ steps.prep.outputs.tags }}
+          tags: ${{ steps.tags.outputs.tags }}
