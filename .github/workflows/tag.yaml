@@ -20,7 +20,7 @@ jobs:
           #fi
 
           IMAGE_VERSION="${GITHUB_REF/refs\/tags\//}"
-          TAGS="ghcr.io/${{ github.repository }}:$IMAGE_VERSION"
+          TAGS="ghcr.io/inshur/fy:$IMAGE_VERSION"
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
           echo $TAGS
 
@@ -35,4 +35,4 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: ghcr.io/Inshur/fy:1.0.2
+          tags: ghcr.io/inshur/fy:1.0.2
