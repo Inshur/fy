@@ -12,7 +12,7 @@ jobs:
       - name: Extract Tags
         run: |
           IMAGE_VERSION="${GITHUB_REF/refs\/tags\//}"
-          TAGS="ghcr.io/inshur/fy:$IMAGE_VERSION"
+          TAGS="inshur/fy:$IMAGE_VERSION"
           echo "IMAGE_VERSION=${IMAGE_VERSION}" >> ${GITHUB_ENV}
           echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
           echo $TAGS
@@ -34,4 +34,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: inshur/fy:${IMAGE_VERSION}
+          tags: "${TAGS}"
