@@ -125,7 +125,6 @@ class K8sCLI:
         parser.add_argument(
             "--skip-kube-score", help="skip kube-score", action="store_true"
         )
-        parser.add_argument("--skip-kube-diff", help="skip diff", action="store_true")
         parser.add_argument(
             "--force-vault",
             help="force use of vault even if a gcp account is already active",
@@ -140,9 +139,8 @@ class K8sCLI:
                 print("\n==> kube-score\n")
                 self._kube_score()
 
-            if not args.skip_kube_diff:
-                print("\n==> kubectl diff\n")
-                self._diff()
+            print("\n==> kubectl diff\n")
+            self._diff()
 
             print("\n==> kubectl apply\n")
             if os.environ.get("KUBECTL_CLI_ARGS_APPLY"):
@@ -181,7 +179,6 @@ class K8sCLI:
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
-        parser.add_argument("--skip-kube-diff", help="skip diff", action="store_true")
         parser.add_argument(
             "--skip-kube-score", help="skip kube-score", action="store_true"
         )
@@ -215,9 +212,8 @@ class K8sCLI:
                 .rstrip()
             )
 
-            if not args.skip_kube_diff:
-                print("\n==> kubectl diff\n")
-                self._diff()
+            print("\n==> kubectl diff\n")
+            self._diff()
         except Exception as error:
             self._handle_error(error)
 
