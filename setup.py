@@ -14,7 +14,7 @@ readme = ""
 setup(
     long_description=readme,
     name="fy",
-    version="1.0.2",
+    version="1.0.3",
     python_requires="==3.*,>=3.7.0",
     author="Rob Wilson",
     author_email="roobert@gmail.com",
