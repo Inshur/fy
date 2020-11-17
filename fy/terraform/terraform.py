@@ -66,6 +66,14 @@ class Terraform:
         else:
             self._exec("terraform apply")
 
+    def destroy(self):
+        if os.environ.get("TERRAFORM_CLI_ARGS_DESTROY"):
+            self._exec(
+                f"terraform destroy {os.environ.get('TERRAFORM_CLI_ARGS_DESTROY')}"
+            )
+        else:
+            self._exec("terraform destroy")
+
     def tfsec(self):
         # * ignore GCP002 error about unencrypted buckets since buckets are
         #   encrypted by default, see: https://github.com/liamg/tfsec/issues/137
