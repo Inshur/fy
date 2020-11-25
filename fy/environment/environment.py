@@ -44,7 +44,7 @@ class Environment:
     environment_type: str = field(init=False)
 
     deployment_type: str = field(init=False)
-    deployment_path: str = os.getcwd()
+    deployment_path: str = os.environ["PWD"]
 
     iac_root_dir: str = field(init=False)
 
@@ -103,7 +103,7 @@ class Environment:
     #
 
     def _detect_iac_root(self):
-        source_path = Path.cwd()
+        source_path = Path(self.deployment_path)
         count = 0
         for dir in source_path.parts:
             if dir == "deployment":
