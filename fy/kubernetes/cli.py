@@ -5,15 +5,18 @@ import os
 import re
 import sys
 from dataclasses import dataclass, field
+from pathlib import Path
 from textwrap import dedent
+
+import yaml
 
 from ..argparser import ExtendedHelpArgumentParser, subcommand_exists
 from ..environment.environment import Environment, EnvironmentError
 
 try:
-    from sh import kubectl, kube_score
+    from sh import kubectl, kube_score, kapp
 except ImportError as error:
-    for command in ["gcloud", "kube-score", "kubectl"]:
+    for command in ["gcloud", "kube-score", "kubectl", "kapp"]:
         if re.search(r".*'" + command + "'.*", str(error)):
             print(f"could not find {command}(1) in path, please install {command}!")
             exit(127)
@@ -24,6 +27,7 @@ class K8sCLI:
     trace: bool
     command: str
     environment: Environment = field(init=False)
+    manifest_type: any = field(init=False)
 
     def __post_init__(self):
         parser = ExtendedHelpArgumentParser(
@@ -58,6 +62,8 @@ class K8sCLI:
         if self.environment.deployment_type != "k8s_app":
             raise EnvironmentError("is this an 'k8s_app' deployment directory?")
 
+        self._detect_manifest_dir_type()
+
         if not args.skip_environment:
             print(self.environment.pretty_print(args, obfuscate=True))
 
@@ -72,6 +78,38 @@ class K8sCLI:
                 pass
 
         self.environment.activate_container_cluster_context()
+
+    def _detect_manifest_dir_type(self):
+        fy_deployment_config_file = Path(
+            self.environment.deployment_path, ".fy.deployment.yaml.skip"
+        )
+        kustomization_config_file = Path(
+            self.environment.deployment_path, "kustomization.yaml"
+        )
+
+        if Path(fy_deployment_config_file).exists():
+            with open(fy_deployment_config_file) as file:
+                try:
+                    config = yaml.safe_load(file)
+                    self.manifest_type = config["type"]
+                except KeyError as error:
+                    raise EnvironmentError(
+                        "file .fy.deployment.yaml exists but has no key: type"
+                    ) from error
+        elif Path(kustomization_config_file).exists():
+            self.manifest_type = "kustomize"
+        else:
+            self.manifest_type = "kubectl"
+
+        if self.manifest_type not in [
+            "kustomize-kapp",
+            "kapp",
+            "kustomize",
+            "kubectl",
+        ]:
+            raise EnvironmentError(
+                f"file .fy.deployment.yaml config set to unknown type: {self.manifest_type}"
+            )
 
     def use(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s use [-h|--help]")
@@ -109,7 +147,6 @@ class K8sCLI:
         self._setup(args)
 
         try:
-            print("\n==> kubectl diff\n")
             self._diff()
         except Exception as error:
             self._handle_error(error)
@@ -139,14 +176,32 @@ class K8sCLI:
                 print("\n==> kube-score\n")
                 self._kube_score()
 
-            print("\n==> kubectl diff\n")
-            self._diff()
+            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_APPLY")])
 
-            print("\n==> kubectl apply\n")
-            if os.environ.get("KUBECTL_CLI_ARGS_APPLY"):
+            if self.manifest_type == "kubectl":
+                self._diff()
+
+                print("\n==> kubectl apply\n")
                 print(
                     kubectl.apply(
-                        os.environ.get("KUBECTL_CLI_ARGS_APPLY"),
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-f",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize":
+                self._diff()
+
+                print("\n==> kustomize | kubectl apply\n")
+                print(
+                    kubectl.apply(
+                        *args,
                         "--context",
                         self.environment.kubectl_context,
                         "-k",
@@ -156,13 +211,47 @@ class K8sCLI:
                     .stdout.decode("UTF-8")
                     .rstrip()
                 )
-            else:
+
+            elif self.manifest_type == "kapp":
+                print("\n==> kapp deploy\n")
+                app_name = Path(self.environment.deployment_path).parts[-1]
                 print(
-                    kubectl.apply(
-                        "--context",
+                    kapp.deploy(
+                        *args,
+                        "--diff-changes",
+                        "--kubeconfig-context",
                         self.environment.kubectl_context,
-                        "-k",
+                        "-a",
+                        app_name,
+                        "-f",
                         ".",
+                        "--yes",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize-kapp":
+                print("\n==> kustomize | kapp deploy\n")
+                app_name = Path(self.environment.deployment_path).parts[-1]
+                print(
+                    kapp.deploy(
+                        kubectl.kustomize(
+                            *args,
+                            "--context",
+                            self.environment.kubectl_context,
+                            ".",
+                            _env=self.environment.env,
+                        ),
+                        "--diff-changes",
+                        "--kubeconfig-context",
+                        self.environment.kubectl_context,
+                        "-a",
+                        app_name,
+                        "-f",
+                        "-",
+                        "--yes",
                         _env=self.environment.env,
                     )
                     .stdout.decode("UTF-8")
@@ -196,24 +285,88 @@ class K8sCLI:
                 print("\n==> kube-score\n")
                 self._kube_score()
 
-            print("\n==> kubectl kustomize\n")
-            args = filter(
-                None,
-                [
-                    os.environ.get("KUBECTL_CLI_ARGS_PLAN"),
-                    "--context",
-                    self.environment.kubectl_context,
-                    ".",
-                ],
-            )
-            print(
-                kubectl.kustomize(*args, _env=self.environment.env,)
-                .stdout.decode("UTF-8")
-                .rstrip()
-            )
+            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_APPLY")])
 
-            print("\n==> kubectl diff\n")
-            self._diff()
+            if self.manifest_type == "kubectl":
+                self._diff()
+
+                print("\n==> kubectl plan\n")
+                print(
+                    kubectl.plan(
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-f",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize":
+                self._diff()
+
+                print("\n==> kustomize | kubectl plan\n")
+                print(
+                    kubectl.plan(
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-k",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kapp":
+                # NOTE: this is the equiv of plan
+                print("\n==> kapp deploy --diff-run\n")
+                app_name = Path(self.environment.deployment_path).parts[-1]
+                print(
+                    kapp.deploy(
+                        *args,
+                        "--diff-run",
+                        "--kubeconfig-context",
+                        self.environment.kubectl_context,
+                        "-a",
+                        app_name,
+                        "-f",
+                        ".",
+                        "--yes",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize-kapp":
+                print("\n==> kustomize | kapp deploy\n")
+                app_name = Path(self.environment.deployment_path).parts[-1]
+                print(
+                    kapp.deploy(
+                        kubectl.kustomize(
+                            *args,
+                            "--context",
+                            self.environment.kubectl_context,
+                            ".",
+                            _env=self.environment.env,
+                        ),
+                        "--diff-run",
+                        "--kubeconfig-context",
+                        self.environment.kubectl_context,
+                        "-a",
+                        app_name,
+                        "-f",
+                        "-",
+                        "--yes",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
         except Exception as error:
             self._handle_error(error)
 
@@ -232,25 +385,58 @@ class K8sCLI:
         )
         args = parser.parse_args(sys.argv[3:])
 
-        self._setup(args)
-
         try:
-            print("\n==> kubectl delete\n")
-            args = filter(
-                None,
-                [
-                    os.environ.get("KUBECTL_CLI_ARGS_DELETE"),
-                    "--context",
-                    self.environment.kubectl_context,
-                    "-k",
-                    ".",
-                ],
-            )
-            print(
-                kubectl.delete(*args, _env=self.environment.env,)
-                .stdout.decode("UTF-8")
-                .rstrip()
-            )
+            self._setup(args)
+
+            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_DELETE")])
+
+            if self.manifest_type == "kubectl":
+                print("\n==> kubectl delete\n")
+                print(
+                    kubectl.delete(
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-f",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize":
+                print("\n==> kustomize | kubectl delete\n")
+                print(
+                    kubectl.delete(
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-k",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kapp" or self.manifest_type == "kustomize-kapp":
+                print("\n==> kapp delete\n")
+                app_name = Path(self.environment.deployment_path).parts[-1]
+                print(
+                    kapp.delete(
+                        *args,
+                        "--diff-changes",
+                        "--kubeconfig-context",
+                        self.environment.kubectl_context,
+                        "-a",
+                        app_name,
+                        "--yes",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
         except Exception as error:
             self._handle_error(error)
 
@@ -258,6 +444,7 @@ class K8sCLI:
 
     def _diff(self):
         try:
+            print("\n==> kubectl diff\n")
             args = filter(
                 None,
                 [
@@ -295,18 +482,36 @@ class K8sCLI:
 
     def _kube_score(self):
         try:
-            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE"),],)
-            print(
-                kube_score(
-                    kubectl.kustomize(*args),
-                    "score",
-                    "--kubernetes-version=v1.14",
-                    "-v",
-                    "-",
-                    _ok_code=[0, 1],
-                    _env=self.environment.env,
-                ).stdout.decode("UTF-8")
-            )
+            if self.manifest_type == "kustomize":
+                args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],)
+                print(
+                    kube_score(
+                        kubectl.kustomize(*args),
+                        "score",
+                        "--kubernetes-version=v1.14",
+                        "-v",
+                        "-",
+                        _ok_code=[0, 1],
+                        _env=self.environment.env,
+                    ).stdout.decode("UTF-8")
+                )
+
+            else:
+                args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],)
+                for manifest in list(
+                    Path(self.environment.deployment_path).glob("*.yaml")
+                ):
+                    output = kube_score(
+                        "score",
+                        "--kubernetes-version=v1.14",
+                        "-v",
+                        manifest,
+                        _ok_code=[0, 1],
+                        _env=self.environment.env,
+                    ).stdout.decode("UTF-8")
+
+                    if output:
+                        print(output)
         except Exception as error:
             self._handle_error(error)
 
