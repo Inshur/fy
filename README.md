@@ -6,15 +6,14 @@ F-Yeah!
 
 A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools to ease common deployment workflows.
 
-
-## Install
+## Install
 
 ```
 pip install pipx
 pipx install git+https://github.com/Inshur/fy --force
 ```
 
-## Dependencies
+## Dependencies
 
 * [GCloud](https://cloud.google.com/sdk)
 * [Kubectl](https://cloud.google.com/sdk)
