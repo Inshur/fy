@@ -18,7 +18,7 @@ A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools 
 * [tfsec](https://github.com/tfsec/tfsec)
 * [kube-score](https://github.com/zegl/kube-score)
 
-### Quick Install
+### Quick Install
 
 ```
 curl https://sdk.cloud.google.com | bash
