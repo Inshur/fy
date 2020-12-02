@@ -30,7 +30,7 @@ RUN \
   && rm -f /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
 
 RUN \
-  curl https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
+  curl -L https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
   > /bin/kapp \
   && chmod +x /bin/kapp
 
