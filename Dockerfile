@@ -31,7 +31,8 @@ RUN \
 
 RUN \
   curl https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
-  > /bin/kapp
+  > /bin/kapp \
+  && chmod +x /bin/kapp
 
 RUN \
   curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
