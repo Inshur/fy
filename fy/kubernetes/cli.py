@@ -81,7 +81,7 @@ class K8sCLI:
 
     def _detect_manifest_dir_type(self):
         fy_deployment_config_file = Path(
-            self.environment.deployment_path, ".fy.deployment.yaml.skip"
+            self.environment.deployment_path, ".fy.yaml.skip"
         )
         kustomization_config_file = Path(
             self.environment.deployment_path, "kustomization.yaml"
@@ -91,10 +91,12 @@ class K8sCLI:
             with open(fy_deployment_config_file) as file:
                 try:
                     config = yaml.safe_load(file)
-                    self.manifest_type = config["type"]
-                except KeyError as error:
+                    self.manifest_type = (
+                        config.get("kubernetes").get("deployment").get("type")
+                    )
+                except AttributeError as error:
                     raise EnvironmentError(
-                        "file .fy.deployment.yaml exists but has no key: type"
+                        "file .fy.yaml.skip exists but has no key: kubernetes.deployment.type"
                     ) from error
         elif Path(kustomization_config_file).exists():
             self.manifest_type = "kustomize"
@@ -108,7 +110,7 @@ class K8sCLI:
             "kubectl",
         ]:
             raise EnvironmentError(
-                f"file .fy.deployment.yaml config set to unknown type: {self.manifest_type}"
+                f"file .fy.yaml.skip config set to unknown type: {self.manifest_type}"
             )
 
     def use(self):

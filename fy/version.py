@@ -1,1 +1,1 @@
-__version__ = "fy 1.0.7"
+__version__ = "fy 1.0.8"
