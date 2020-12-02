@@ -6,6 +6,7 @@ ENV TERRAFORM_VERSION=0.13.4
 ENV VAULT_VERSION=1.2.3
 ENV KUBE_SCORE_VERSION=1.9.0
 ENV TFSEC_VERSION=0.30.1
+ENV KAPP_VERSION=0.34.0
 
 RUN \
   apt-get update \
@@ -27,6 +28,10 @@ RUN \
   > /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
   && unzip /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /bin \
   && rm -f /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+
+RUN \
+  curl https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
+  > /bin/kapp
 
 RUN \
   curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
