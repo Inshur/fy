@@ -479,6 +479,7 @@ class K8sCLI:
         )
 
         try:
+            self._detect_manifest_dir_type()
             print("\n==> kube-score\n")
             self._kube_score()
         except Exception as error:
@@ -486,7 +487,10 @@ class K8sCLI:
 
     def _kube_score(self):
         try:
-            if self.manifest_type == "kustomize":
+            if (
+                self.manifest_type == "kustomize"
+                or self.manifest_type == "kustomize-kapp"
+            ):
                 args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],)
                 print(
                     kube_score(
