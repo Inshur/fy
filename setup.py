@@ -19,9 +19,9 @@ setup(
     python_requires='==3.*,>=3.7.0',
     author='Rob Wilson',
     author_email='roobert@gmail.com',
-    entry_points={"console_scripts": ["fy = fy.__main__:main"]},
-    packages=['fy', 'fy.environment', 'fy.infra', 'fy.kubernetes', 'fy.skeleton', 'fy.terraform', 'fy.vault'],
+    entry_points={"console_scripts": ["fy = fycli.__main__:main"]},
+    packages=['fycli', 'fycli.environment', 'fycli.infra', 'fycli.kubernetes', 'fycli.skeleton', 'fycli.terraform', 'fycli.vault'],
     package_dir={"": "."},
-    package_data={"fy": ["*.txt"]},
+    package_data={"fycli": ["*.txt"]},
     install_requires=['pyyaml==5.*,>=5.3.0', 'sh==1.*,>=1.12.14'],
 )
