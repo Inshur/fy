@@ -68,9 +68,14 @@ class Dependencies:
 
         elif executable == "kubectl":
             output = json.loads(
-                kubectl.version(client=True, output="json").stdout.decode("UTF-8").strip()
+                kubectl.version(client=True, output="json")
+                .stdout.decode("UTF-8")
+                .strip()
             )
-            version = self._remove_prefix(output["clientVersion"]["gitVersion"], "v")
+            version = self._remove_suffix(
+                self._remove_prefix(output["clientVersion"]["gitVersion"], "v"),
+                "-dispatcher",
+            )
 
         elif executable == "terraform":
             output = json.loads(
@@ -120,4 +125,10 @@ class Dependencies:
     def _remove_prefix(text, prefix):
         if text.startswith(prefix):
             text = text[len(prefix) :]
+        return text
+
+    @staticmethod
+    def _remove_suffix(text, suffix):
+        if text.endswith(suffix):
+            text = text[: len(suffix) + 1]
         return text
