@@ -2,7 +2,7 @@ APP=fycli
 VERSION := $(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')
 
 clean:
-	@rm -vrf ${APP}.egg-info venv
+	@rm -vrf ${APP}.egg-info venv build dist
 
 install:
 	pip install fycli
