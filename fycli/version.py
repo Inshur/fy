@@ -1,1 +1,1 @@
-__version__ = "fycli 2.0.6"
+__version__ = "fycli 2.0.7"

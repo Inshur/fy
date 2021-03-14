@@ -130,5 +130,5 @@ class Dependencies:
     @staticmethod
     def _remove_suffix(text, suffix):
         if text.endswith(suffix):
-            text = text[: len(suffix) + 1]
+            text = text[: -len(suffix)]
         return text
