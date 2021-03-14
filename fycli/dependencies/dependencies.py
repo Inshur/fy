@@ -32,13 +32,12 @@ class Dependencies:
         lockfile = self._lockfile()
 
         if not lockfile:
-            print("Error: no fy dependency lockfile detected!")
-            exit(1)
+            return
 
         failed = False
         config = self._load(lockfile)
 
-        print("==> version checks\n")
+        print(f"==> version checks (lockfile: {lockfile})\n")
 
         for exe, version in config.items():
             if not version:
