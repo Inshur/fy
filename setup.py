@@ -14,7 +14,7 @@ readme = ''
 
 setup(
     long_description=readme,
-    name='fy',
+    name='fycli',
     version='1.0.15',
     python_requires='==3.*,>=3.7.0',
     author='Rob Wilson',

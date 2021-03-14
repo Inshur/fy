@@ -1,11 +1,20 @@
 APP=fy
 VERSION := $(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')
 
-install:
-	pip install fy
-
 clean:
 	@rm -vrf ${APP}.egg-info venv
+
+install:
+	pip install fycli
+
+build-deps:
+	pip install --upgrade build twine
+
+build: build-deps
+	python -m build
+
+push: build
+	twine upload dist/*
 
 dev:
 	@poetry run ${APP}
