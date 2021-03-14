@@ -58,7 +58,7 @@ class Dependencies:
     def _local_version(self, executable):
         if executable == "fy":
             output = fy(version=True).stdout.decode("UTF-8").strip()
-            version = self._remove_prefix(output, "fy ")
+            version = self._remove_prefix(output, "fycli ")
 
         elif executable == "gcloud":
             output = json.loads(

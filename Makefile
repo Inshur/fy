@@ -1,4 +1,4 @@
-APP=fy
+APP=fycli
 VERSION := $(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')
 
 clean:
@@ -8,7 +8,7 @@ install:
 	pip install fycli
 
 build-deps:
-	pip install --upgrade build twine toml dephell
+	pip install --upgrade build twine toml dephell poetry
 
 build: build-deps
 	python -m build
