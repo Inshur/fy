@@ -1,2 +1,5 @@
 __pycache__
-fy.egg-info
+fycli.egg-info
+dist
+build
+TODO

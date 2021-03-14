@@ -25,7 +25,6 @@ curl https://sdk.cloud.google.com | bash
 brew tap k14s/tap
 brew install tfsec vault terraform kapp
 brew install kube-score/tap/kube-score
-pip install pipx
-pipx install git+https://github.com/Inshur/fy --force
+pip install fycli --upgrade
 ```
 
