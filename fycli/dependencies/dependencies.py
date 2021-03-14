@@ -68,7 +68,7 @@ class Dependencies:
 
         elif executable == "kubectl":
             output = json.loads(
-                kubectl.version(client="false", output="json").stdout.decode("UTF-8").strip()
+                kubectl.version(client=True, output="json").stdout.decode("UTF-8").strip()
             )
             version = self._remove_prefix(output["clientVersion"]["gitVersion"], "v")
 
