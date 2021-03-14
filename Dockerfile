@@ -1,4 +1,4 @@
-FROM python:3.7.8-slim
+FROM python:3.9.1-slim
 
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 ENV GOOGLE_CLOUD_SDK_VERSION=325.0.0
@@ -54,10 +54,6 @@ RUN \
   mkdir fy
 
 COPY . /fy
-
-#RUN \
-#  ln -s /usr/bin/python3 /usr/bin/python \
-#  && ln -s /usr/bin/pip3 /usr/bin/pip
 
 RUN \
   pip install poetry \

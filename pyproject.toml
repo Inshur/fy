@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "fycli"
-version = "1.0.18"
+version = "2.0.0"
 description = ""
 authors = ["Rob Wilson <roobert@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 sh = "^1.12.14"
 pyyaml = "^5.3"
 
