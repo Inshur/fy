@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fy"
-version = "1.0.14"
+version = "1.0.15"
 description = ""
 authors = ["Rob Wilson <roobert@gmail.com>"]
 

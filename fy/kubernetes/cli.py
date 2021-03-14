@@ -11,6 +11,7 @@ from textwrap import dedent
 import yaml
 
 from ..argparser import ExtendedHelpArgumentParser, subcommand_exists
+from ..dependencies.dependencies import Dependencies
 from ..environment.environment import Environment, EnvironmentError
 
 try:
@@ -18,7 +19,7 @@ try:
 except ImportError as error:
     for command in ["gcloud", "kube-score", "kubectl", "kapp"]:
         if re.search(r".*'" + command + "'.*", str(error)):
-            print(f"could not find {command}(1) in path, please install {command}!")
+            print(f"Could not find {command}(1) in path, please install {command}!")
             exit(127)
 
 
@@ -59,6 +60,8 @@ class K8sCLI:
         getattr(self, subcommand)()
 
     def _setup(self, args, disable_gcloud_sandbox=False):
+        Dependencies().check()
+
         if self.environment.deployment_type != "k8s_app":
             raise EnvironmentError("is this an 'k8s_app' deployment directory?")
 
@@ -448,22 +451,86 @@ class K8sCLI:
 
     def _diff(self):
         try:
-            print("\n==> kubectl diff\n")
-            args = filter(
-                None,
-                [
-                    os.environ.get("KUBECTL_CLI_ARGS_DIFF"),
-                    "--context",
-                    self.environment.kubectl_context,
-                    "-k",
-                    ".",
-                ],
-            )
-            changes = (
-                kubectl.diff(*args, _ok_code=[0, 1], _env=self.environment.env,)
-                .stdout.decode("UTF-8")
-                .rstrip()
-            )
+            print("\n==> deployment diff\n")
+
+            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_DELETE")])
+
+            if self.manifest_type == "kubectl":
+                print("diff-type: kubectl")
+                changes = (
+                    kubectl.diff(
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-f",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize":
+                print("diff-type: kustomize")
+                changes = (
+                    kubectl.diff(
+                        *args,
+                        "--context",
+                        self.environment.kubectl_context,
+                        "-k",
+                        ".",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kapp":
+                print("diff-type: kapp")
+                app_name = Path(self.environment.deployment_path).parts[-1]
+                changes = (
+                    kapp.deploy(
+                        *args,
+                        "--diff-run",
+                        "--kubeconfig-context",
+                        self.environment.kubectl_context,
+                        "-a",
+                        app_name,
+                        "-f",
+                        ".",
+                        "--yes",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
+            elif self.manifest_type == "kustomize-kapp":
+                print("diff-type: kustomize-kapp")
+                app_name = Path(self.environment.deployment_path).parts[-1]
+                changes = (
+                    kapp.deploy(
+                        kubectl.kustomize(
+                            *args,
+                            "--context",
+                            self.environment.kubectl_context,
+                            ".",
+                            _env=self.environment.env,
+                        ),
+                        "--diff-run",
+                        "--kubeconfig-context",
+                        self.environment.kubectl_context,
+                        "-a",
+                        app_name,
+                        "-f",
+                        "-",
+                        "--yes",
+                        _env=self.environment.env,
+                    )
+                    .stdout.decode("UTF-8")
+                    .rstrip()
+                )
+
         except Exception as error:
             self._handle_error(error)
 

@@ -2,7 +2,7 @@ APP=fy
 VERSION := $(shell python -c 'import toml; print(toml.load("pyproject.toml")["tool"]["poetry"]["version"])')
 
 install:
-	./install.sh
+	pip install fy
 
 clean:
 	@rm -vrf ${APP}.egg-info venv

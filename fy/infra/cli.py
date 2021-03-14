@@ -6,6 +6,7 @@ from pathlib import Path
 from textwrap import dedent
 
 from ..argparser import ExtendedHelpArgumentParser, subcommand_exists
+from ..dependencies.dependencies import Dependencies
 from ..environment.environment import Environment, EnvironmentError
 from ..skeleton.skeleton import Skeleton
 from ..terraform.terraform import Terraform
@@ -46,6 +47,8 @@ class InfraCLI:
         getattr(self, subcommand)()
 
     def _setup(self, args):
+        Dependencies().check()
+
         if self.environment.deployment_type != "infra":
             raise EnvironmentError("is this an 'infra' deployment directory?")
 

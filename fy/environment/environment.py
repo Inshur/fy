@@ -25,7 +25,7 @@ try:
 except ImportError as error:
     for command in ["gcloud"]:
         if re.search(r".*'" + command + "'.*", str(error)):
-            print(f"could not find {command}(1) in path, please install {command}!")
+            print(f"Could not find {command}(1) in path, please install {command}!")
             exit(127)
 
 

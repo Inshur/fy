@@ -6,6 +6,7 @@ import sys
 from textwrap import dedent
 
 from .argparser import ExtendedHelpArgumentParser, UnrecognisedCommandError
+from .dependencies.cli import DependenciesCLI  # noqa: F401
 from .environment.cli import EnvCLI  # noqa: F401
 from .environment.environment import EnvironmentError
 from .infra.cli import InfraCLI  # noqa: F401
@@ -31,11 +32,12 @@ class DeepArgParser:
                   fy <command> [-h|--help|-v|--version]
 
                 commands:
-                  env        establish environment from deployment context
-                  skeleton   manage deployment context symlinks and boilerplate manifests
-                  vault      manage access to deployment target via vault
-                  infra      manage infrastructure from deployment context
-                  k8s        manage kubernetes deployment from app dir
+                  env           establish environment from deployment context
+                  skeleton      manage deployment context symlinks and boilerplate manifests
+                  vault         manage access to deployment target via vault
+                  infra         manage infrastructure from deployment context
+                  k8s           manage kubernetes deployment from app dir
+                  dependencies  check fy dependencies
                 """
             ),
         )
@@ -90,11 +92,6 @@ class DeepArgParser:
 
         return trace
 
-    # FIXME
-    # * b+w when no colour support
-    # * read version from file
-    # * hide header if hush file exists in .fy
-    # * move to subcommand stuff
     @staticmethod
     def _header():
         columns = shutil.get_terminal_size((80, 20)).columns
