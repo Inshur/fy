@@ -89,7 +89,7 @@ class Dependencies:
             # install.
             terraform_path = which("terraform")
             if Path(terraform_path).is_symlink():
-                if Path(terraform_path).resolve().parts[4] == "tfenv":
+                if Path(terraform_path).resolve().parts[-4] == "tfenv":
                     tfenv.install()
 
             output = json.loads(
