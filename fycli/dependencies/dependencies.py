@@ -10,7 +10,8 @@ import yaml
 from pkg_resources import parse_version
 
 try:
-    from sh import fy, gcloud, kube_score, kubectl, terraform, tfsec, vault
+    from sh import (fy, gcloud, kube_score, kubectl, terraform, tfenv, tfsec,
+                    vault, which)
 except ImportError as error:
     for command in [
         "fy",
@@ -20,6 +21,8 @@ except ImportError as error:
         "terraform",
         "tfsec",
         "vault",
+        "which",
+        "tfenv",
     ]:
         if re.search(r".*'" + command + "'.*", str(error)):
             print(f"Could not find {command}(1) in path, please install {command}!")
@@ -77,6 +80,18 @@ class Dependencies:
             )
 
         elif executable == "terraform":
+            # Check if terraform is a symlink to tfenv.. if so then run tfenv install
+            # first to ensure that the correct version of terraform is installed.
+            #
+            # This is necessary because otherwise if the terraform version isn't
+            # installed but tfenv is in use then the terraform version check will fail
+            # due to stdout being filled with garbage from tfenv during terraform binary
+            # install.
+            terraform_path = which("terraform")
+            if Path(terraform_path).is_symlink():
+                if Path(terraform_path).resolve().parts[4] == "tfenv":
+                    tfenv.install()
+
             output = json.loads(
                 terraform.version(json=True).stdout.decode("UTF-8").strip()
             )
