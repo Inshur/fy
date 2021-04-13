@@ -80,8 +80,9 @@ class Dependencies:
             )
 
         elif executable == "terraform":
-            # Check if terraform is a symlink to tfenv.. if so then run tfenv install
-            # first to ensure that the correct version of terraform is installed.
+            # Check if terraform is a symlink or tfenv bash script.. if so then run
+            # tfenv install first to ensure that the correct version of terraform is
+            # installed.
             #
             # This is necessary because otherwise if the terraform version isn't
             # installed but tfenv is in use then the terraform version check will fail
@@ -89,8 +90,10 @@ class Dependencies:
             # install.
             terraform_path = which("terraform")
             if Path(terraform_path).is_symlink():
-                if Path(terraform_path).resolve().parts[-4] == "tfenv":
+                if "tfenv" in Path(terraform_path).resolve().parts:
                     tfenv.install()
+            elif "tfenv" in Path(terraform_path).parts:
+                tfenv.install()
 
             output = json.loads(
                 terraform.version(json=True).stdout.decode("UTF-8").strip()
