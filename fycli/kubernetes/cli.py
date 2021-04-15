@@ -295,13 +295,13 @@ class K8sCLI:
             if self.manifest_type == "kubectl":
                 self._diff()
 
-                print("\n==> kubectl apply --dry-run")
+                print("\n==> kubectl apply --dry-run=server")
                 print(
                     kubectl.apply(
                         *args,
                         "--context",
                         self.environment.kubectl_context,
-                        "--dry-run",
+                        "--dry-run=server",
                         "-f",
                         ".",
                         _env=self.environment.env,
@@ -313,13 +313,13 @@ class K8sCLI:
             elif self.manifest_type == "kustomize":
                 self._diff()
 
-                print("\n==> kubectl kustomize | kubectl apply --dry-run\n")
+                print("\n==> kubectl kustomize | kubectl apply --dry-run=server\n")
                 print(
                     kubectl.apply(
                         *args,
                         "--context",
                         self.environment.kubectl_context,
-                        "--dry-run",
+                        "--dry-run=server",
                         "-k",
                         ".",
                         _env=self.environment.env,
@@ -465,6 +465,7 @@ class K8sCLI:
                         "-f",
                         ".",
                         _env=self.environment.env,
+                        _ok_code=[0, 1],
                     )
                     .stdout.decode("UTF-8")
                     .rstrip()
@@ -480,6 +481,7 @@ class K8sCLI:
                         "-k",
                         ".",
                         _env=self.environment.env,
+                        _ok_code=[0, 1],
                     )
                     .stdout.decode("UTF-8")
                     .rstrip()
@@ -558,7 +560,10 @@ class K8sCLI:
                 self.manifest_type == "kustomize"
                 or self.manifest_type == "kustomize-kapp"
             ):
-                args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],)
+                args = filter(
+                    None,
+                    [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],
+                )
                 print(
                     kube_score(
                         kubectl.kustomize(*args),
@@ -572,7 +577,10 @@ class K8sCLI:
                 )
 
             else:
-                args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],)
+                args = filter(
+                    None,
+                    [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],
+                )
                 for manifest in list(
                     Path(self.environment.deployment_path).glob("*.yaml")
                 ):
