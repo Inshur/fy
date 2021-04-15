@@ -545,10 +545,6 @@ class K8sCLI:
                 )
 
         except Exception as error:
-            # an exit 1 on kubectl diff is valid, it means there are differences
-            print("Handling Exceptions")
-            dir(error)
-            print(error)
             self._handle_error(error)
 
         if changes:
