@@ -1,8 +1,8 @@
 FROM python:3.9.1-slim
 
-ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
-ENV GOOGLE_CLOUD_SDK_VERSION=331.0.0
-ENV TERRAFORM_VERSION=0.13.4
+ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin:/tfenv/bin
+ENV GOOGLE_CLOUD_SDK_VERSION=335.0.0
+ENV TERRAFORM_VERSION=0.14.10
 ENV VAULT_VERSION=1.2.3
 ENV KUBE_SCORE_VERSION=1.9.0
 ENV TFSEC_VERSION=0.39.6
@@ -24,10 +24,8 @@ RUN \
 
 
 RUN \
-  curl https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
-  > /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip \
-  && unzip /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /bin \
-  && rm -f /tmp/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+  git clone https://github.com/tfutils/tfenv.git /tfenv && \
+  tfenv install 0.14.10
 
 RUN \
   curl -L https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
