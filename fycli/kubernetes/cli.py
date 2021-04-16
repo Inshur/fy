@@ -294,7 +294,6 @@ class K8sCLI:
 
             if self.manifest_type == "kubectl":
                 self._diff()
-
                 print("\n==> kubectl apply --server-dry-run")
                 print(
                     kubectl.apply(
@@ -319,7 +318,7 @@ class K8sCLI:
                         *args,
                         "--context",
                         self.environment.kubectl_context,
-                        "--server-dry-run",
+                        "--dry-run=server",
                         "-k",
                         ".",
                         _env=self.environment.env,
