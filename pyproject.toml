@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fycli"
-version = "2.0.12"
+version = "2.0.13"
 description = ""
 authors = ["Rob Wilson <roobert@gmail.com>"]
 
@@ -10,6 +10,7 @@ sh = "^1.12.14"
 pyyaml = "^5.3"
 
 [tool.poetry.dev-dependencies]
+black = {version = "^20.8b1", allow-prereleases = true}
 
 [tool.dephell.main]
 from = {format = "poetry", path = "pyproject.toml"}

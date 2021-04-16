@@ -20,7 +20,7 @@ dev:
 	@poetry run ${APP}
 
 venv:
-	@virtualenv venv
+	@virtualenv
 	@echo "# run:"
 	@echo "source venv/bin/activate"
 
