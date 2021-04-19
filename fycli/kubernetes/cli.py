@@ -295,13 +295,13 @@ class K8sCLI:
             if self.manifest_type == "kubectl":
                 self._diff()
 
-                print("\n==> kubectl apply --dry-run=server")
+                print("\n==> kubectl apply --dry-run")
                 print(
                     kubectl.apply(
                         *args,
                         "--context",
                         self.environment.kubectl_context,
-                        "--dry-run=server",
+                        "--dry-run",
                         "-f",
                         ".",
                         _env=self.environment.env,
@@ -313,13 +313,13 @@ class K8sCLI:
             elif self.manifest_type == "kustomize":
                 self._diff()
 
-                print("\n==> kubectl kustomize | kubectl apply --dry-run=server\n")
+                print("\n==> kubectl kustomize | kubectl apply --dry-run\n")
                 print(
                     kubectl.apply(
                         *args,
                         "--context",
                         self.environment.kubectl_context,
-                        "--dry-run=server",
+                        "--dry-run",
                         "-k",
                         ".",
                         _env=self.environment.env,
