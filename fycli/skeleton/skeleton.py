@@ -36,14 +36,29 @@ class Skeleton:
             ".gitignore",
         )
 
+        self._symlink_f(
+            str(
+                PurePath(os.path.join(self.path, "terraform.lock.hcl")).relative_to(
+                    self.environment.deployment_path
+                )
+            ),
+            ".terraform.lock.hcl",
+        )
+
     def clean(self):
         files = list(Path(".").glob("_*"))
 
         for file in files:
             self._unlink(file)
-        self._unlink(".gitignore")
 
-        if len(files) == 0 and not Path(".gitignore").exists():
+        self._unlink(".gitignore")
+        self._unlink(".terraform.lock.hcl")
+
+        if (
+            len(files) == 0
+            and not Path(".gitignore").exists()
+            and not Path(".terraform.lock.hcl")
+        ):
             print("nothing to do")
 
     def refresh(self):
@@ -52,7 +67,10 @@ class Skeleton:
 
     def _set_skeleton_path(self):
         self.path = Path(
-            os.path.join(self.environment.deployment_path, "../../../../../skeleton/",)
+            os.path.join(
+                self.environment.deployment_path,
+                "../../../../../skeleton/",
+            )
         )
 
     def _generate_boilerplate_files(self):
