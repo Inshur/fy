@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fycli"
-version = "2.0.14"
+version = "2.0.15"
 description = ""
 authors = ["Rob Wilson <roobert@gmail.com>"]
 

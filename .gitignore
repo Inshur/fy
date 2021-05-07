@@ -5,3 +5,4 @@ build
 TODO
 venv
 .vscode
+.idea/
