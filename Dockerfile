@@ -25,7 +25,7 @@ RUN \
 
 RUN \
   git clone https://github.com/tfutils/tfenv.git /tfenv && \
-  tfenv install 0.14.10
+  tfenv install ${TERRAFORM_VERSION}
 
 RUN \
   curl -L https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
