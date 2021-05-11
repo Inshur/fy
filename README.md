@@ -70,7 +70,7 @@ tfenv install "${TERRAFORM_VERSION}"
 curl "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" \
   > "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
   && unzip -d "${HOME}/bin" "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
-  && rm -f "vault_${VAULT_VERSION}_linux_amd64.zip"
+  && rm -f "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip"
 
 # kapp
 curl -L "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64" \
