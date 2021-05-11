@@ -50,33 +50,36 @@ export KAPP_VERSION=0.35.0
 sudo apt-get install python3.9
 
 # google sdk
-echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update && sudo apt-get install google-cloud-sdk=$GOOGLE_CLOUD_SDK_VERSION-0
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
+  | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
+  | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+sudo apt-get update \
+  && sudo apt-get install google-cloud-sdk=$GOOGLE_CLOUD_SDK_VERSION-0
 sudo apt-get install kubectl
 
 # tfenv
-tfenv install $TERRAFORM_VERSION
+tfenv install "${TERRAFORM_VERSION}"
 
 # vault
-curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
-  > /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
-  && unzip -d $HOME/bin /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
-  && rm -f vault_${VAULT_VERSION}_linux_amd64.zip
+curl "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" \
+  > "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
+  && unzip -d "${HOME}/bin" "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
+  && rm -f "vault_${VAULT_VERSION}_linux_amd64.zip"
 
 # kapp
-curl -L https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
-  > $HOME/bin/kapp && chmod +x $HOME/bin/kapp
+curl -L "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64" \
+  > "${HOME}/bin/kapp" && chmod +x "${HOME}/bin/kapp"
 
 # kube-score
-curl -L https://github.com/zegl/kube-score/releases/download/v${KUBE_SCORE_VERSION}/kube-score_${KUBE_SCORE_VERSION}_linux_amd64 \
-  > $HOME/bin/kube-score \
-  && chmod +x $HOME/bin/kube-score
+curl -L "https://github.com/zegl/kube-score/releases/download/v${KUBE_SCORE_VERSION}/kube-score_${KUBE_SCORE_VERSION}_linux_amd64" \
+  > ${HOME}/bin/kube-score \
+  && chmod +x ${HOME}/bin/kube-score
 
 # tfsec
-curl -L https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfsec-linux-amd64 \
-  > $HOME/bin/tfsec \
-  && chmod +x $HOME/bin/tfsec
+curl -L "https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfsec-linux-amd64" \
+  > "${HOME}/bin/tfsec" \
+  && chmod +x "${HOME}/bin/tfsec"
 
 # configure venv
 /usr/bin/python3.9 -m venv venv
@@ -95,7 +98,7 @@ python -m venv venv
 source venv/bin/activate
 make build-deps
 make version-patch
-git tag 2.0.15
+git tag "$(make version-show)"
 git push --tags
 ```
 

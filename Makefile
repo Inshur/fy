@@ -41,3 +41,6 @@ version-minor:
 version-major:
 	@poetry version major
 	@(make version)
+
+version-show:
+	@echo ${VERSION}
