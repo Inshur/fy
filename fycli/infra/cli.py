@@ -143,7 +143,9 @@ class InfraCLI:
             action="store_true",
         )
         parser.add_argument(
-            "--skip-tfsec", help="skip tfsec", action="store_true",
+            "--skip-tfsec",
+            help="skip tfsec",
+            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -193,7 +195,9 @@ class InfraCLI:
             action="store_true",
         )
         parser.add_argument(
-            "--skip-tfsec", help="skip tfsec", action="store_true",
+            "--skip-tfsec",
+            help="skip tfsec",
+            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -205,6 +209,7 @@ class InfraCLI:
             self._terraform_skip_or_tfsec(args)
             self._terraform_plan()
             self._terraform_apply()
+            self._modules_update()
             self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
@@ -242,7 +247,9 @@ class InfraCLI:
             action="store_true",
         )
         parser.add_argument(
-            "--skip-tfsec", help="skip tfsec", action="store_true",
+            "--skip-tfsec",
+            help="skip tfsec",
+            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -253,6 +260,7 @@ class InfraCLI:
             self._terraform_skip_or_validate(args)
             self._terraform_skip_or_tfsec(args)
             self._terraform_apply()
+            self._modules_update()
             self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
@@ -261,47 +269,28 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(
             usage="\n  fy infra modules-update [-h|--help]"
         )
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "--skip-environment", help="skip environment", action="store_true"
-        )
-        parser.add_argument(
-            "--skip-skeleton", help="skip skeleton", action="store_true"
+            "--skip-skeleton", help="skip skeleton", action="store_false"
         )
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
             action="store_true",
         )
+        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "--force-vault",
             help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
-            "--force-terraform-init",
-            help="force terraform to initialize even if .terraform is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--skip-terraform-init", help="skip terraform init", action="store_true"
-        )
-        parser.add_argument(
-            "--skip-terraform-validate",
-            help="skip terraform validate",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--skip-tfsec", help="skip tfsec", action="store_true",
+            "--skip-environment", help="skip environment", action="store_true"
         )
         args = parser.parse_args(sys.argv[3:])
 
         self._setup(args)
 
         try:
-            self._terraform_skip_or_init(args)
-            self._terraform_skip_or_validate(args)
-            self._terraform_skip_or_tfsec(args)
             self._modules_update()
             self._cleanup()
         except Exception as error:
@@ -340,7 +329,9 @@ class InfraCLI:
             action="store_true",
         )
         parser.add_argument(
-            "--skip-tfsec", help="skip tfsec", action="store_true",
+            "--skip-tfsec",
+            help="skip tfsec",
+            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -428,7 +419,7 @@ class InfraCLI:
         self.terraform.plan()
 
     def _modules_update(self):
-        print("\n==> modules update\n")
+        print("\n==> update terraform module data\n")
         self.terraform.modules_update()
 
     def _terraform_skip_or_apply(self, args):

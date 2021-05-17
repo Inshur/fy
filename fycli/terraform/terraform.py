@@ -4,7 +4,10 @@ import os
 import re
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from subprocess import Popen
+
+from google.cloud import storage
 
 from ..environment.environment import Environment
 
@@ -22,32 +25,45 @@ class Terraform:
     environment: Environment
 
     def init(self):
+        bucket = "".join(
+            [
+                f"{self.environment.org_id}-terraform-state-",
+                f"{self.environment.region}",
+                f"-{self.environment.environment}",
+                f"-{self.environment.deployment}",
+            ]
+        )
+
         command = "".join(
             [
-                "terraform init",
-                " -backend-config=",
-                f"bucket={self.environment.org_id}-terraform-state-"
-                f"{self.environment.region}-{self.environment.environment}-{self.environment.deployment}",
+                f"terraform init -backend-config=bucket={bucket}",
                 " -backend-config=prefix=terraform.state",
             ]
         )
-        print(command)
+
+        print(f"state: gs://{bucket}/terraform.state\n")
         self._exec(command)
 
     def modules_update(self):
-        if os.environ.get("TERRAFORM_CLI_ARGS_PLAN"):
-            self._exec(
-                f"terraform plan {os.environ.get('TERRAFORM_CLI_ARGS_PLAN')} -out=tfplan.zip"
+        cwd = os.environ["PWD"]
+        modules_file = Path(cwd, ".terraform/modules/modules.json")
+
+        bucket_name = "".join(
+            [
+                f"{self.environment.org_id}-terraform-state",
+                f"-{self.environment.region}",
+                f"-{self.environment.environment}",
+                f"-{self.environment.deployment}",
+            ]
+        )
+
+        if modules_file.exists():
+            self._upload_blob(
+                bucket_name, str(modules_file), "terraform.modules/modules.json"
             )
         else:
-            self._exec("terraform plan -out=tfplan.zip")
-
-        print()
-        print("extracting modules.json..")
-        self._exec("unzip -qqc tfplan.zip tfconfig/modules.json > modules.json")
-
-        print("removing tfplan.zip")
-        self._exec("rm -f tfplan.zip")
+            print(f"File not found: {modules_file}")
+            print(f"Please generate modules file by running an apply")
 
     def validate(self):
         self._exec("terraform validate")
@@ -108,3 +124,20 @@ class Terraform:
 
         if process.returncode != 0:
             exit(process.returncode)
+
+    def _upload_blob(self, bucket_name, source_file_name, destination_blob_name):
+        """Uploads a file to the bucket."""
+        # The ID of your GCS bucket
+        # bucket_name = "your-bucket-name"
+        # The path to your file to upload
+        # source_file_name = "local/path/to/file"
+        # The ID of your GCS object
+        # destination_blob_name = "storage-object-name"
+
+        storage_client = storage.Client()
+        bucket = storage_client.bucket(bucket_name)
+        blob = bucket.blob(destination_blob_name)
+
+        blob.upload_from_filename(source_file_name)
+
+        print(f"Uploaded module data to gs://{bucket_name}/{destination_blob_name}")
