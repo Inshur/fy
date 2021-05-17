@@ -34,7 +34,7 @@ pip install pipx
 pipx install git+https://github.com/Inshur/fy --force
 ```
 
-### Ubuntu
+### Ubuntu 20.10+
 
 ```
 # Get current version from https://github.com/Inshur/inshur-iac/blob/master/.fy.lock
@@ -47,15 +47,20 @@ export KAPP_VERSION=0.35.0
 
 # python3.9 
 # Note: do not set this as default system python, use a venv
+sudo apt-get install virtualenv
 sudo apt-get install python3.9
 
-# google sdk
+# google sdk repo - run this only once
 echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" \
   | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 curl https://packages.cloud.google.com/apt/doc/apt-key.gpg \
   | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
-sudo apt-get update \
-  && sudo apt-get install google-cloud-sdk=$GOOGLE_CLOUD_SDK_VERSION-0
+
+# google sdk
+sudo apt-get update
+sudo apt-mark unhold google-cloud-sdk
+sudo apt-get install google-cloud-sdk=$GOOGLE_CLOUD_SDK_VERSION-0
+sudo apt-mark hold google-cloud-sdk
 sudo apt-get install kubectl
 
 # tfenv
@@ -65,7 +70,7 @@ tfenv install "${TERRAFORM_VERSION}"
 curl "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" \
   > "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
   && unzip -d "${HOME}/bin" "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
-  && rm -f "vault_${VAULT_VERSION}_linux_amd64.zip"
+  && rm -f "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip"
 
 # kapp
 curl -L "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64" \
@@ -82,7 +87,7 @@ curl -L "https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfse
   && chmod +x "${HOME}/bin/tfsec"
 
 # configure venv
-/usr/bin/python3.9 -m venv venv
+/usr/bin/virtualenv -p /usr/bin/python3.9 venv
 source venv/bin/activate
 pip install fycli
 
