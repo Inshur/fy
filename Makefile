@@ -8,7 +8,7 @@ install:
 	pip install fycli
 
 build-deps:
-	pip install --upgrade build twine dephell poetry
+	pip install --upgrade build twine poetry
 
 build: build-deps
 	python -m build
@@ -24,10 +24,7 @@ venv:
 	@echo "# run:"
 	@echo "source venv/bin/activate"
 
-setup:
-	@dephell deps convert
-
-version: setup
+version:
 	$(shell echo "__version__ = \"${APP} ${VERSION}\"" > ${APP}/version.py)
 
 version-patch:
