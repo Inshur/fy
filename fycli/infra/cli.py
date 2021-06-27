@@ -11,7 +11,6 @@ from ..environment.environment import Environment, EnvironmentError
 from ..skeleton.skeleton import Skeleton
 from ..terraform.terraform import Terraform
 
-
 @dataclass
 class InfraCLI:
     trace: bool
@@ -47,7 +46,8 @@ class InfraCLI:
         getattr(self, subcommand)()
 
     def _setup(self, args):
-        Dependencies().check()
+        if not args.skip_version_check:
+            Dependencies().check()
 
         if self.environment.deployment_type != "infra":
             raise EnvironmentError("is this an 'infra' deployment directory?")
@@ -58,18 +58,6 @@ class InfraCLI:
         if (not args.skip_vault and self.environment.use_vault) or args.force_vault:
             print("\n==> vault refresh\n")
             self.environment.vault_refresh()
-
-        # FIXME: move to env
-        # FIXME: quick fix to always run skeleton
-        # if (
-        #    not args.skip_skeleton and not self._skeleton_exists()
-        # ) or args.force_skeleton:
-        #    print("\n==> skeleton clean\n")
-        #    skeleton = Skeleton(environment=self.environment)
-        #    skeleton.clean()
-
-        #    print("\n==> skeleton apply\n")
-        #    skeleton.apply()
 
         if (not args.skip_skeleton) or args.force_skeleton:
             print("\n==> skeleton clean\n")
@@ -84,6 +72,9 @@ class InfraCLI:
     def init(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra init [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
@@ -113,6 +104,9 @@ class InfraCLI:
     def plan(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra plan [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
@@ -166,6 +160,9 @@ class InfraCLI:
         )
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
         parser.add_argument(
@@ -217,6 +214,9 @@ class InfraCLI:
     def apply(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra apply [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
@@ -279,6 +279,9 @@ class InfraCLI:
         )
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
             "--force-vault",
             help="force use of vault even if a gcp account is already active",
             action="store_true",
@@ -299,6 +302,9 @@ class InfraCLI:
     def tfsec(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra tfsec [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
@@ -348,6 +354,9 @@ class InfraCLI:
     def destroy(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra destroy [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )

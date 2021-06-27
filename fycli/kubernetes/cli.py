@@ -60,7 +60,8 @@ class K8sCLI:
         getattr(self, subcommand)()
 
     def _setup(self, args, disable_gcloud_sandbox=False):
-        Dependencies().check()
+        if not args.skip_version_check:
+            Dependencies().check()
 
         if self.environment.deployment_type != "k8s_app":
             raise EnvironmentError("is this an 'k8s_app' deployment directory?")
@@ -120,6 +121,9 @@ class K8sCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s use [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
         parser.add_argument(
@@ -139,6 +143,9 @@ class K8sCLI:
     def diff(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s diff [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
@@ -162,6 +169,12 @@ class K8sCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s apply [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
+            "--skip-diff", help="skip diff", action="store_true"
+        )
+        parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
         parser.add_argument(
@@ -181,15 +194,16 @@ class K8sCLI:
                 print("\n==> kube-score\n")
                 self._kube_score()
 
-            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_APPLY")])
+            kubectl_args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_APPLY")])
 
             if self.manifest_type == "kubectl":
-                self._diff()
+                if not args.skip_diff:
+                    self._diff()
 
                 print("\n==> kubectl apply\n")
                 print(
                     kubectl.apply(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "-f",
@@ -201,12 +215,13 @@ class K8sCLI:
                 )
 
             elif self.manifest_type == "kustomize":
-                self._diff()
+                if not args.skip_diff:
+                    self._diff()
 
                 print("\n==> kustomize | kubectl apply\n")
                 print(
                     kubectl.apply(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "-k",
@@ -222,7 +237,7 @@ class K8sCLI:
                 app_name = Path(self.environment.deployment_path).parts[-1]
                 print(
                     kapp.deploy(
-                        *args,
+                        *kubectl_args,
                         "--diff-changes",
                         "--kubeconfig-context",
                         self.environment.kubectl_context,
@@ -243,7 +258,7 @@ class K8sCLI:
                 print(
                     kapp.deploy(
                         kubectl.kustomize(
-                            *args,
+                            *kubectl_args,
                             "--context",
                             self.environment.kubectl_context,
                             ".",
@@ -271,7 +286,13 @@ class K8sCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s plan [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
+        )
+        parser.add_argument(
+            "--skip-diff", help="skip diff", action="store_true"
         )
         parser.add_argument(
             "--skip-kube-score", help="skip kube-score", action="store_true"
@@ -290,15 +311,16 @@ class K8sCLI:
                 print("\n==> kube-score\n")
                 self._kube_score()
 
-            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_APPLY")])
+            kubectl_args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_APPLY")])
 
             if self.manifest_type == "kubectl":
-                self._diff()
+                if not args.skip_diff:
+                    self._diff()
 
                 print("\n==> kubectl apply --dry-run")
                 print(
                     kubectl.apply(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "--dry-run",
@@ -311,12 +333,13 @@ class K8sCLI:
                 )
 
             elif self.manifest_type == "kustomize":
-                self._diff()
+                if not args.skip_diff:
+                    self._diff()
 
                 print("\n==> kubectl kustomize | kubectl apply --dry-run\n")
                 print(
                     kubectl.apply(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "--dry-run",
@@ -334,7 +357,7 @@ class K8sCLI:
                 app_name = Path(self.environment.deployment_path).parts[-1]
                 print(
                     kapp.deploy(
-                        *args,
+                        *kubectl_args,
                         "--diff-run",
                         "--kubeconfig-context",
                         self.environment.kubectl_context,
@@ -355,7 +378,7 @@ class K8sCLI:
                 print(
                     kapp.deploy(
                         kubectl.kustomize(
-                            *args,
+                            *kubectl_args,
                             "--context",
                             self.environment.kubectl_context,
                             ".",
@@ -383,6 +406,9 @@ class K8sCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s delete [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
         parser.add_argument(
@@ -395,13 +421,13 @@ class K8sCLI:
         try:
             self._setup(args)
 
-            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_DELETE")])
+            kubectl_args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_DELETE")])
 
             if self.manifest_type == "kubectl":
                 print("\n==> kubectl delete\n")
                 print(
                     kubectl.delete(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "-f",
@@ -416,7 +442,7 @@ class K8sCLI:
                 print("\n==> kustomize | kubectl delete\n")
                 print(
                     kubectl.delete(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "-k",
@@ -432,7 +458,7 @@ class K8sCLI:
                 app_name = Path(self.environment.deployment_path).parts[-1]
                 print(
                     kapp.delete(
-                        *args,
+                        *kubectl_args,
                         "--diff-changes",
                         "--kubeconfig-context",
                         self.environment.kubectl_context,
@@ -453,13 +479,13 @@ class K8sCLI:
         try:
             print("\n==> deployment diff\n")
 
-            args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_DELETE")])
+            kubectl_args = filter(None, [os.environ.get("KUBECTL_CLI_ARGS_DELETE")])
 
             if self.manifest_type == "kubectl":
                 print("diff-type: kubectl")
                 changes = (
                     kubectl.diff(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "-f",
@@ -475,7 +501,7 @@ class K8sCLI:
                 print("diff-type: kustomize")
                 changes = (
                     kubectl.diff(
-                        *args,
+                        *kubectl_args,
                         "--context",
                         self.environment.kubectl_context,
                         "-k",
@@ -492,7 +518,7 @@ class K8sCLI:
                 app_name = Path(self.environment.deployment_path).parts[-1]
                 changes = (
                     kapp.deploy(
-                        *args,
+                        *kubectl_args,
                         "--diff-run",
                         "--kubeconfig-context",
                         self.environment.kubectl_context,
@@ -513,7 +539,7 @@ class K8sCLI:
                 changes = (
                     kapp.deploy(
                         kubectl.kustomize(
-                            *args,
+                            *kubectl_args,
                             "--context",
                             self.environment.kubectl_context,
                             ".",
@@ -560,13 +586,13 @@ class K8sCLI:
                 self.manifest_type == "kustomize"
                 or self.manifest_type == "kustomize-kapp"
             ):
-                args = filter(
+                kubectl_args = filter(
                     None,
                     [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],
                 )
                 print(
                     kube_score(
-                        kubectl.kustomize(*args),
+                        kubectl.kustomize(*kubectl_args),
                         "score",
                         "--kubernetes-version=v1.14",
                         "-v",
@@ -577,7 +603,7 @@ class K8sCLI:
                 )
 
             else:
-                args = filter(
+                kubectl_args = filter(
                     None,
                     [os.environ.get("KUBECTL_CLI_ARGS_KUSTOMIZE")],
                 )

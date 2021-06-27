@@ -57,7 +57,7 @@ class Skeleton:
         if (
             len(files) == 0
             and not Path(".gitignore").exists()
-            and not Path(".terraform.lock.hcl")
+            and not Path(".terraform.lock.hcl").exists()
         ):
             print("nothing to do")
 
