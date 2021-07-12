@@ -56,9 +56,9 @@ class Skeleton:
         self._unlink(".terraform.lock.hcl")
 
         if (
-                len(files) == 0
-                and not Path(".gitignore").exists()
-                and not Path(".terraform.lock.hcl").exists()
+            len(files) == 0
+            and not Path(".gitignore").exists()
+            and not Path(".terraform.lock.hcl").exists()
         ):
             print("nothing to do")
 
