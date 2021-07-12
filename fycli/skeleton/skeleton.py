@@ -4,6 +4,7 @@ import errno
 import os
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
+import shutil
 
 from ..environment.environment import Environment
 
@@ -27,7 +28,7 @@ class Skeleton:
             dest = os.path.basename(file)
             self._symlink_f(file, dest)
 
-        self._symlink_f(
+        self._copy_f(
             str(
                 PurePath(os.path.join(self.path, "gitignore")).relative_to(
                     self.environment.deployment_path
@@ -111,3 +112,7 @@ class Skeleton:
             print(f"unlink: {file}")
         except FileNotFoundError:
             pass
+
+    def _copy_f(self, src, dest):
+        print(f"copy: {src} -> {dest}")
+        shutil.copy(src, dest, follow_symlinks=True)
