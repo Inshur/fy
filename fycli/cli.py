@@ -11,6 +11,7 @@ from .environment.cli import EnvCLI  # noqa: F401
 from .environment.environment import EnvironmentError
 from .infra.cli import InfraCLI  # noqa: F401
 from .kubernetes.cli import K8sCLI  # noqa: F401
+from .module.cli import ModuleCLI  # noqa: F401
 from .skeleton.cli import SkeletonCLI  # noqa: F401
 from .vault.cli import VaultCLI  # noqa: F401
 from .vault.vault_lease import VaultError
@@ -21,7 +22,10 @@ class DeepArgParser:
     def __init__(self):
         try:
             self.parse_args()
-        except (EnvironmentError, UnrecognisedCommandError,) as error:
+        except (
+            EnvironmentError,
+            UnrecognisedCommandError,
+        ) as error:
             print(f"{error.__class__.__name__}: {error}")
             exit(1)
 
@@ -29,7 +33,7 @@ class DeepArgParser:
         parser = ExtendedHelpArgumentParser(
             usage=dedent(
                 """
-                  fy <command> [-h|--help|-v|--version]
+                  fy [--trace] <command> [-h|--help|-v|--version]
 
                 commands:
                   env           establish environment from deployment context
@@ -37,6 +41,7 @@ class DeepArgParser:
                   vault         manage access to deployment target via vault
                   infra         manage infrastructure from deployment context
                   k8s           manage kubernetes deployment from app dir
+                  module        manage kubernetes modules
                   dependencies  check fy dependencies
                 """
             ),
@@ -83,12 +88,12 @@ class DeepArgParser:
         trace = False
         if sys.argv[1:2]:
             first_arg = sys.argv[1:2][0]
-            if first_arg == "-t" or first_arg == "--trace":
+            if first_arg == "--trace":
                 trace = True
 
             # check for trace flag and remove from argv if present
             # so arg parsing can still function properly with subcommands
-            sys.argv = [arg for arg in sys.argv if arg not in ["-t", "--trace"]]
+            sys.argv = [arg for arg in sys.argv if arg not in ["--trace"]]
 
         return trace
 
