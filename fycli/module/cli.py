@@ -3,7 +3,7 @@
 import os
 import re
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from shutil import copytree, rmtree
 from textwrap import dedent
@@ -21,6 +21,7 @@ from .utils import get_deployment, get_deployments, get_latest_version
 class ModuleCLI:
     trace: bool
     command: str
+    deployments: any = field(init=False)
 
     def __post_init__(self):
         parser = ExtendedHelpArgumentParser(
@@ -52,6 +53,9 @@ class ModuleCLI:
 
         getattr(self, subcommand)()
 
+    def _setup(self):
+        self.deployments = get_deployments()
+
     def list(self):
         parser = ExtendedHelpArgumentParser(
             usage="\n  fy k8s list [-a application] [-h|--help]"
@@ -61,15 +65,15 @@ class ModuleCLI:
         args = parser.parse_args(sys.argv[3:])
 
         try:
+            self._setup()
             self._list(args)
         except Exception as error:
             self._handle_error(error)
 
-    @staticmethod
-    def _environment_number_collections():
+    def _environment_number_collections(self):
         environment_number_collections = {}
 
-        for deployment in get_deployments():
+        for deployment in self.deployments:
             environment_number = re.match(r"[a-z]+([0-9]+)$", deployment.environment)[1]
 
             if environment_number not in environment_number_collections.keys():
@@ -81,7 +85,7 @@ class ModuleCLI:
         environment_number_collections = self._environment_number_collections()
 
         collection = {}
-        for deployment in get_deployments():
+        for deployment in self.deployments:
             environment_type = re.sub(r"[0-9]+$", "", deployment.environment)
             environment_number = re.match(r"[a-z]+([0-9]+)$", deployment.environment)[1]
 
@@ -171,6 +175,7 @@ class ModuleCLI:
         args = parser.parse_args(sys.argv[3:])
 
         try:
+            self._setup()
             app = args.application
             version = args.version
             environment = args.environment
@@ -342,6 +347,7 @@ class ModuleCLI:
         args = parser.parse_args(sys.argv[3:])
 
         try:
+            self._setup()
             app = args.application
             old_env = args.old_env
             new_envs = args.new_envs
@@ -368,12 +374,13 @@ class ModuleCLI:
                 if version != "-"
             ]
 
-    # FIXME: cache _get_deployments, etc.
     def _promote(self, app, old_env, new_envs, bump_type):
         old_version = self._get_deployment(old_env, app).version
         source = Path("module/app", app, old_version)
 
         for new_env in self._get_envs(new_envs, app):
+            if old_env == new_env:
+                continue
             print(f"==> promoting {app}:{old_version}: {old_env} -> {new_env}")
             self._symlink(app, old_version, new_env, heading=False)
             print()
