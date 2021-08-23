@@ -69,7 +69,12 @@ class DeepArgParser:
                 parser.error(f"Command not found: {subcommand}")
             raise
 
-        self._header()
+        # header is useful when using commands with long output, to easily distinguish
+        # the start of a new command output
+        # header is annoying when using commands with short output when we often want
+        # to reference the last commands output
+        if subcommand != "module":
+            self._header()
 
         try:
             getattr(sys.modules[__name__], class_name)(trace=trace, command=subcommand)

@@ -14,7 +14,7 @@ from rich.console import Console
 from rich.table import Table
 
 from ..argparser import ExtendedHelpArgumentParser, subcommand_exists
-from .utils import get_deployment, get_deployments, get_latest_version
+from .utils import get_deployments, get_latest_version
 
 
 @dataclass
@@ -30,17 +30,21 @@ class ModuleCLI:
                   fy module <command> [-h|--help]
 
                 commands:
-                  list       list modules
+                  list       list applications and show which environments reference
+                             which module versions
 
-                  copy       copy module version
-                  bump       bump module version
+                  copy       create a copy of a module version, specifying target
+                             version
 
-                  symlink    symlink a module
+                  bump       create a copy of a module bumping the version using bump
+                             type of either major, minor, or patch
 
-                  promote    promote a module to another environment and create
-                             a new version for the source environment
+                  symlink    create a symlink from a deployment to an application module
+                             version
 
-                  help       extended help for how to use module sub-command
+                  promote    promote a module version to target environment(s) and create
+                             a new version for the original environment. Target supports
+                             single env, CSV, or env-type, e.g: test0, test0,test1, or test
                 """
             ),
         )
@@ -322,7 +326,7 @@ class ModuleCLI:
 
     def promote(self):
         parser = ExtendedHelpArgumentParser(
-            usage="\n  fy module promote -a application -o old_env -n new_env -t (major|minor|patch) [-h|--help]"
+            usage="\n  fy module promote -a application -o old_env -n new_env -t (major|minor|patch|none) [-h|--help]"
         )
         parser.add_argument(
             "-a", "--application", help="specify application", required=True
