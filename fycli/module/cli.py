@@ -326,7 +326,10 @@ class ModuleCLI:
             "-o", "--old-env", help="specify old environment", required=True
         )
         parser.add_argument(
-            "-n", "--new-env", help="specify new environment", required=True
+            "-n",
+            "--new-envs",
+            help="specify new environment(s) (csv) or environment-type",
+            required=True,
         )
         parser.add_argument(
             "-t",
@@ -341,20 +344,39 @@ class ModuleCLI:
         try:
             app = args.application
             old_env = args.old_env
-            new_env = args.new_env
+            new_envs = args.new_envs
             bump_type = args.type
-            self._promote(app, old_env, new_env, bump_type)
+            self._promote(app, old_env, new_envs, bump_type)
         except Exception as error:
             self._handle_error(error)
 
-    # FIXME: allow new_env to be multiple environments with comma, or by env type
-    def _promote(self, app, old_env, new_env, bump_type):
+    def _get_envs(self, envs, app):
+        # CSV
+        if re.search(",", envs):
+            return envs.split(",")
+
+        # single env
+        elif re.search(r"[0-9]", envs):
+            return [envs]
+
+        # must be env_type
+        else:
+            deployments = self._get_deployments()
+            return [
+                f"{envs}{env_no}"
+                for (env_no, version) in deployments[app][envs].items()
+                if version != "-"
+            ]
+
+    # FIXME: cache _get_deployments, etc.
+    def _promote(self, app, old_env, new_envs, bump_type):
         old_version = self._get_deployment(old_env, app).version
         source = Path("module/app", app, old_version)
 
-        print(f"==> promoting {app}:{old_version}: {old_env} -> {new_env}")
-        self._symlink(app, old_version, new_env, heading=False)
-        print()
+        for new_env in self._get_envs(new_envs, app):
+            print(f"==> promoting {app}:{old_version}: {old_env} -> {new_env}")
+            self._symlink(app, old_version, new_env, heading=False)
+            print()
 
         if bump_type != "none":
             new_version = self._bump_version(old_version, bump_type)
