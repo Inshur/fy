@@ -13,7 +13,7 @@ build-deps:
 build: build-deps
 	python -m build
 
-push: build
+push: clean build
 	twine upload dist/*
 
 dev:

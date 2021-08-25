@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import functools
 import os
 import re
 import sys
@@ -9,12 +10,12 @@ from shutil import copytree, rmtree
 from textwrap import dedent
 
 import semver
+import yaml
 from packaging import version
 from rich.console import Console
 from rich.table import Table
 
 from ..argparser import ExtendedHelpArgumentParser, subcommand_exists
-from .utils import get_deployments, get_latest_version
 
 
 @dataclass
@@ -58,7 +59,7 @@ class ModuleCLI:
         getattr(self, subcommand)()
 
     def _setup(self):
-        self.deployments = get_deployments()
+        self.deployments = self._convert_deployment_dirs()
 
     def list(self):
         parser = ExtendedHelpArgumentParser(
@@ -73,38 +74,6 @@ class ModuleCLI:
             self._list(args)
         except Exception as error:
             self._handle_error(error)
-
-    def _environment_number_collections(self):
-        environment_number_collections = {}
-
-        for deployment in self.deployments:
-            environment_number = re.match(r"[a-z]+([0-9]+)$", deployment.environment)[1]
-
-            if environment_number not in environment_number_collections.keys():
-                environment_number_collections[environment_number] = "-"
-
-        return environment_number_collections
-
-    def _get_deployments(self):
-        environment_number_collections = self._environment_number_collections()
-
-        collection = {}
-        for deployment in self.deployments:
-            environment_type = re.sub(r"[0-9]+$", "", deployment.environment)
-            environment_number = re.match(r"[a-z]+([0-9]+)$", deployment.environment)[1]
-
-            if deployment.app not in collection.keys():
-                collection[deployment.app] = {
-                    "dev": environment_number_collections.copy(),
-                    "test": environment_number_collections.copy(),
-                    "prod": environment_number_collections.copy(),
-                }
-
-            collection[deployment.app][environment_type][
-                environment_number
-            ] = deployment.version
-
-        return collection
 
     # desired output:
     # foo | dev0 / 1.0  | test0 / 2.0 | prod0 / 3.0 |
@@ -188,15 +157,9 @@ class ModuleCLI:
             self._handle_error(error)
 
     def _symlink(self, app, version, environment, heading=True):
-        app_directory = Path("module/app", app, version, "manifests", environment)
-
-        # don't bother checking to see if module has been templated until templating is
-        # built into FY
-        # if not app_directory.exists():
-        #    print(
-        #        f"error: target application directory does not exist: {app_directory}"
-        #    )
-        #    exit(1)
+        app_directory = Path(
+            self._iac_root(), "module/app", app, version, "manifests", environment
+        )
 
         deployment_path = self._get_deployment(environment, app).path
 
@@ -230,14 +193,15 @@ class ModuleCLI:
 
         try:
             app = args.application
-            source = Path("module/app", app, args.old)
-            target = Path("module/app", app, args.new)
+            source = Path(self._iac_root(), "module/app", app, args.old)
+            target = Path(self._iac_root(), "module/app", app, args.new)
 
             self._copy(source, target)
         except Exception as error:
             self._handle_error(error)
 
     def _copy(self, source, target, heading=True):
+        print(source)
         if not Path(source).exists():
             print(f"error: source module does not exist: {source}")
             exit(1)
@@ -283,13 +247,13 @@ class ModuleCLI:
             self._handle_error(error)
 
     def _bump(self, app, bump_type):
-        latest_version = get_latest_version(app)
+        latest_version = self._get_latest_version(app)
         target_version = self._bump_version(latest_version, bump_type)
 
-        source = Path("module/app", app, latest_version)
-        target = Path("module/app", app, target_version)
+        source = Path(self._iac_root(), "module/app", app, latest_version)
+        target = Path(self._iac_root(), "module/app", app, target_version)
 
-        self._copy(app, source, target)
+        self._copy(source, target)
 
     @staticmethod
     def _bump_version(version, bump_type):
@@ -311,12 +275,11 @@ class ModuleCLI:
         except Exception as error:
             self._handle_error(error)
 
-    @staticmethod
-    def _versions(app):
+    def _versions(self, app):
         print(f"==> available versions for application: {app}\n")
         dirs = [
             str(dir).split("/")[-1]
-            for dir in Path("module/app", app).iterdir()
+            for dir in Path(self._iac_root(), "module/app", app).iterdir()
             if str(dir).split("/")[-1] != "archived"
         ]
 
@@ -360,6 +323,29 @@ class ModuleCLI:
         except Exception as error:
             self._handle_error(error)
 
+    def _promote(self, app, old_env, new_envs, bump_type):
+        old_version = self._get_deployment(old_env, app).version
+        source = Path(self._iac_root(), "module/app", app, old_version)
+
+        for new_env in self._get_envs(new_envs, app):
+            if old_env == new_env:
+                continue
+            print(f"==> promoting {app}:{old_version}: {old_env} -> {new_env}")
+            self._symlink(app, old_version, new_env, heading=False)
+            print()
+
+        if bump_type != "none":
+            new_version = self._bump_version(old_version, bump_type)
+            target = Path(self._iac_root(), "module/app", app, new_version)
+            print(
+                f"==> creating new module for {old_env}: {app}:{new_version} ({bump_type} version bump)"
+            )
+            print()
+            self._copy(source, target, heading=False)
+            print()
+            print(f"==> setting application version for {old_env}: {app}:{new_version}")
+            self._symlink(app, new_version, old_env, heading=False)
+
     def _get_envs(self, envs, app):
         # CSV
         if re.search(",", envs):
@@ -378,36 +364,137 @@ class ModuleCLI:
                 if version != "-"
             ]
 
-    def _promote(self, app, old_env, new_envs, bump_type):
-        old_version = self._get_deployment(old_env, app).version
-        source = Path("module/app", app, old_version)
-
-        for new_env in self._get_envs(new_envs, app):
-            if old_env == new_env:
-                continue
-            print(f"==> promoting {app}:{old_version}: {old_env} -> {new_env}")
-            self._symlink(app, old_version, new_env, heading=False)
-            print()
-
-        if bump_type != "none":
-            new_version = self._bump_version(old_version, bump_type)
-            target = Path("module/app", app, new_version)
-            print(
-                f"==> creating new module for {old_env}: {app}:{new_version} ({bump_type} version bump)"
-            )
-            print()
-            self._copy(source, target, heading=False)
-            print()
-            print(f"==> setting application version for {old_env}: {app}:{new_version}")
-            self._symlink(app, new_version, old_env, heading=False)
-
-    @staticmethod
-    def _get_deployment(environment, app):
-        for deployment in get_deployments(app=app, environment=environment):
+    def _get_deployment(self, environment, app):
+        for deployment in self._convert_deployment_dirs(
+            app=app, environment=environment
+        ):
             if deployment.app == app and deployment.environment == environment:
                 return deployment
-
         return None
+
+    def _iac_root(self):
+        if os.environ.get("FY_IAC_ROOT"):
+            return os.environ.get("FY_IAC_ROOT")
+
+        pwd = os.environ.get("PWD")
+        if Path(pwd, ".fy.lock").exists() and Path(pwd, "deployment").exists():
+            return pwd
+
+        count = 0
+        for dir in Path(pwd).parts:
+            current_dir = str(Path(*Path(pwd).parts[:count]))
+            if (
+                Path(current_dir, "deployment").exists()
+                and Path(current_dir, ".fy.lock").exists()
+            ):
+                return current_dir
+            count += 1
+
+        print(
+            "error: unable to determine IAC root dir, please set FY_IAC_ROOT or re-run from a sub-directory of the IAC directory"
+        )
+        exit(1)
+
+    def _environment_number_collections(self):
+        environment_number_collections = {}
+
+        for deployment in self.deployments:
+            environment_number = re.match(r"[a-z]+([0-9]+)$", deployment.environment)[1]
+
+            if environment_number not in environment_number_collections.keys():
+                environment_number_collections[environment_number] = "-"
+
+        return environment_number_collections
+
+    def _get_deployments(self):
+        environment_number_collections = self._environment_number_collections()
+
+        collection = {}
+        for deployment in self.deployments:
+            environment_type = re.sub(r"[0-9]+$", "", deployment.environment)
+            environment_number = re.match(r"[a-z]+([0-9]+)$", deployment.environment)[1]
+
+            if deployment.app not in collection.keys():
+                collection[deployment.app] = {
+                    "dev": environment_number_collections.copy(),
+                    "test": environment_number_collections.copy(),
+                    "prod": environment_number_collections.copy(),
+                }
+
+            collection[deployment.app][environment_type][
+                environment_number
+            ] = deployment.version
+
+        return collection
+
+    # FIXME: terrible method name
+    def _convert_deployment_dirs(
+        self, app: str = None, version: str = None, environment: str = None
+    ):
+        deployment_dir = os.path.join(self._iac_root(), "deployment")
+        deployments = []
+
+        paths = []
+
+        for path, names, filenames in os.walk(deployment_dir, followlinks=True):
+            for name in names:
+                paths.append(Path(path, name))
+            for name in filenames:
+                paths.append(Path(path, name))
+
+        for path in paths:
+            if not self._is_app_path(path):
+                continue
+
+            deployment = Deployment(path)
+
+            if app and app != deployment.app:
+                continue
+
+            if environment and environment != deployment.environment:
+                continue
+
+            if version and version != deployment.version:
+                continue
+
+            deployments.append(deployment)
+
+        return deployments
+
+    def _is_app_path(self, path):
+        path = Path(path)
+
+        if not path.match("deployment/*/*/*/*/*/*/*"):
+            return False
+
+        if Path(path, "kustomization.yaml").exists():
+            return True
+
+        if path.is_symlink() and "module/app" in str(path.resolve()):
+            return True
+
+        return False
+
+    @staticmethod
+    def _is_version(name: str):
+        try:
+            semver.parse(name)
+            return True
+        except ValueError:
+            return False
+
+    def _get_latest_version(self, app):
+        app_glob = os.path.join("module/app", app, "*")
+
+        files = Path(self._iac_root()).glob(app_glob)
+
+        versions = [x.name for x in files if x.is_dir() and self._is_version(x.name)]
+
+        compare = functools.cmp_to_key(semver.compare)
+
+        versions.sort(key=compare)
+
+        return versions[len(versions) - 1]
 
     def _handle_error(self, error):
         print("\n==> exception caught!")
@@ -417,3 +504,98 @@ class ModuleCLI:
 
     def _cleanup(self):
         print("\n==> initializing clean-up")
+
+
+@dataclass
+class Deployment:
+    app: str
+    version: str
+    environment: str
+    type: str
+    path: Path
+
+    def __init__(self, path):
+        self.path = Path(path)
+
+        if not self._is_app_path(path):
+            return
+
+        self._refresh()
+
+    def _refresh(self):
+        app, environment, version, _ = self._get_deployment(self.path)
+
+        self.app = app
+        self.environment = environment
+        self.version = version
+        self.type = self._type()
+
+    def is_valid(self):
+        return self._is_app_path(self.path)
+
+    def _type(self):
+        if self.path.is_symlink():
+            return "symlink"
+
+        if self.path.joinpath("kustomization.yaml").exists():
+            return "kustomize"
+
+    # FIXME: deduplicate
+    def _is_app_path(self, path):
+        path = Path(path)
+
+        if not path.match("deployment/*/*/*/*/*/*/*"):
+            return False
+
+        if Path(path, "kustomization.yaml").exists():
+            return True
+
+        if path.is_symlink() and "module/app" in str(path.resolve()):
+            return True
+
+        return False
+
+    def _get_deployment(self, path):
+        path = Path(path)
+
+        name = path.name
+        environment = self._get_deployment_environment(path)
+        _, version, deployment_type = self._get_deployment_module(path)
+
+        return name, environment, version, deployment_type
+
+    def _get_deployment_module(self, deployment_path):
+        if Path(deployment_path).is_symlink():
+            module_path = Path(deployment_path).resolve()
+            deployment_type = "symlink"
+        elif Path(deployment_path, "kustomization.yaml").exists():
+            kustomization_path = Path(deployment_path, "kustomization.yaml")
+            contents = self._load_yaml(kustomization_path)
+            module_path = contents.get("bases")[0]
+            deployment_type = "kustomize"
+        else:
+            return None
+
+        matches = re.search(r"module/app/([^\/]+)/([^\/]+)", str(module_path))
+
+        if not matches:
+            return None
+
+        app = matches.group(1)
+        version = matches.group(2)
+
+        return app, version, deployment_type
+
+    @staticmethod
+    def _get_deployment_environment(path):
+        matches = re.search(r"deployment/[^\/]+/([^\/]+)", str(path))
+
+        if not matches:
+            return None
+
+        return matches.group(1)
+
+    @staticmethod
+    def _load_yaml(path):
+        with open(path) as f:
+            return yaml.load(f, Loader=yaml.FullLoader)
