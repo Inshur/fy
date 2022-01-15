@@ -291,6 +291,7 @@ class Environment:
     #   is specified with the "--region" flag
     def _detect_cluster_zone(self):
         zones = self._detect_region_zones()
+        zones.append(self.region)
 
         for zone in zones:
             data = json.loads(
