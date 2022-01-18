@@ -59,7 +59,10 @@ class Terraform:
 
         if modules_file.exists():
             self._upload_blob(
-                bucket_name, str(modules_file), "terraform.modules/modules.json"
+                self.environment.project_id,
+                bucket_name,
+                str(modules_file),
+                "terraform.modules/modules.json",
             )
         else:
             print(f"File not found: {modules_file}")
@@ -125,8 +128,11 @@ class Terraform:
         if process.returncode != 0:
             exit(process.returncode)
 
-    def _upload_blob(self, bucket_name, source_file_name, destination_blob_name):
+    def _upload_blob(
+        self, project_id, bucket_name, source_file_name, destination_blob_name
+    ):
         """Uploads a file to the bucket."""
+        # project_id = "gcp project ID with which to associate quota"
         # The ID of your GCS bucket
         # bucket_name = "your-bucket-name"
         # The path to your file to upload
@@ -134,7 +140,7 @@ class Terraform:
         # The ID of your GCS object
         # destination_blob_name = "storage-object-name"
 
-        storage_client = storage.Client()
+        storage_client = storage.Client(project=project_id)
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
 
