@@ -1,7 +1,7 @@
 FROM python:3.9.1-slim
 
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin:/tfenv/bin
-ENV GOOGLE_CLOUD_SDK_VERSION=354.0.0
+ENV GOOGLE_CLOUD_SDK_VERSION=371.0.0
 ENV TERRAFORM_VERSION=0.14.11
 ENV VAULT_VERSION=1.2.3
 ENV KUBE_SCORE_VERSION=1.11.0
@@ -20,7 +20,7 @@ RUN \
   && tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz \
   && /usr/local/gcloud/google-cloud-sdk/install.sh \
   && rm -v /tmp/google-cloud-sdk.tar.gz \
-  && gcloud -q components install kubectl
+  && gcloud -q components install kubectl alpha beta
 
 
 RUN \
