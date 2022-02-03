@@ -135,7 +135,7 @@ class ModuleCLI:
 
     def symlink(self):
         parser = ExtendedHelpArgumentParser(
-            usage="\n  fy k8s symlink -a application -v version -e environment [-h|--help]"
+            usage="\n  fy module symlink -a application -v version -e environment [-h|--help]"
         )
         parser.add_argument(
             "-a", "--application", help="specify application", required=True
