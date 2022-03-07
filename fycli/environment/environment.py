@@ -72,6 +72,10 @@ class Environment:
     original_kube_context: any = None
     kubectl_context: any = None
 
+    opa_template_dir: any = None
+    opa_template_file: any = None
+    opa_rules_file: any = None
+
     # Bare minimum initialization that can be used for most basic operations
     def __post_init__(self):
         self._detect_iac_root()
