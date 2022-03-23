@@ -10,16 +10,17 @@ class Opa:
 
     def __init__(self):
 
-        template_dir = os.path.join(os.path.dirname(__file__), "..",
-                                    self.local_environment.opa_template_dir)
-        file_loader = FileSystemLoader(template_dir)
-        env = Environment(loader=file_loader)
-        template = env.get_template(self.local_environment.opa_template_file)
-
-        opa_rules = self.__get_ruleset()
-        output = template.render(opa_rules=opa_rules)
-        with open("policy_rules.rego", "w") as file:
-            file.write(output)
+        print("------ Running OPA ------")
+        # template_dir = os.path.join(os.path.dirname(__file__), "..",
+        #                             self.local_environment.opa_template_dir)
+        # file_loader = FileSystemLoader(template_dir)
+        # env = Environment(loader=file_loader)
+        # template = env.get_template(self.local_environment.opa_template_file)
+        #
+        # opa_rules = self.__get_ruleset()
+        # output = template.render(opa_rules=opa_rules)
+        # with open("policy_rules.rego", "w") as file:
+        #     file.write(output)
 
     # Updates folders with a list of paths containing a rules yaml ruleset
     def __find_opa_file_parent(self, path: Path,
