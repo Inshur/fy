@@ -20,6 +20,8 @@ from .version import __version__
 
 class DeepArgParser:
     def __init__(self):
+
+        print("------ ENTRY POINT ------")
         try:
             self.parse_args()
         except (
