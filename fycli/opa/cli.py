@@ -1,50 +1,130 @@
-import os
-from jinja2 import Environment, FileSystemLoader
-import yaml
+#!/usr/bin/env python
+
+import sys
+from dataclasses import dataclass, field
+from textwrap import dedent
 from pathlib import Path
-from ..environment.environment import Environment as LocalEnvironment
+
+from ..argparser import ExtendedHelpArgumentParser, subcommand_exists
+from ..dependencies.dependencies import Dependencies
+from ..environment.environment import Environment, EnvironmentError
+from ..skeleton.skeleton import Skeleton
+from ..terraform.terraform import Terraform
+from .opa import Opa
 
 
-class Opa:
-    local_environment = LocalEnvironment
+@dataclass
+class OpaCLI:
+    trace: bool
+    command: str
+    environment: Environment = field(init=False)
+    opa: Opa = field(init=False)
 
-    def __init__(self):
+    def __post_init__(self):
+        parser = ExtendedHelpArgumentParser(
+            usage=dedent(
+                """
+                  fy opa <command> [-h|--help]
 
-        print("------ Running OPA ------")
-        # template_dir = os.path.join(os.path.dirname(__file__), "..",
-        #                             self.local_environment.opa_template_dir)
-        # file_loader = FileSystemLoader(template_dir)
-        # env = Environment(loader=file_loader)
-        # template = env.get_template(self.local_environment.opa_template_file)
-        #
-        # opa_rules = self.__get_ruleset()
-        # output = template.render(opa_rules=opa_rules)
-        # with open("policy_rules.rego", "w") as file:
-        #     file.write(output)
+                commands:
+                  run      Run OPA verification
+                """
+            ),
+        )
 
-    # Updates folders with a list of paths containing a rules yaml ruleset
-    def __find_opa_file_parent(self, path: Path,
-                               dirs,
-                               # FIXME: replace dir_stop by stopping when there's no more opa rules file
-                               dir_stop="deployment",
-                               rules_file=local_environment.opa_rules_file):
-        if (path / rules_file).is_file():
-            dirs.append(path / rules_file)
-        parent = path.parent
-        if parent.name != dir_stop:
-            self.__find_opa_file_parent(path.parent, dirs)
+        parser.add_argument("command", help="subcommand to run")
+        args = parser.parse_args(sys.argv[2:3])
+        subcommand = args.command
 
-    def __get_ruleset(self):
-        dirs = []
-        self.__find_opa_file_parent(Path.cwd(), dirs)
-        rules = {}
-        for f in dirs[::-1]:
-            with open(f) as file:
-                content = yaml.load(file, Loader=yaml.FullLoader)
-                rules = rules | content
-        for key, value in rules.items():
-            if type(rules[key]) is bool:
-                rules[key] = "true" if rules[key] else "false"
-            else:
-                rules[key] = f"\"{value}\""
-        return rules
+        subcommand_exists(self, parser, subcommand)
+
+        self.environment = Environment()
+        self.environment.initialize_gcp()
+
+        getattr(self, subcommand)()
+
+    def _setup(self, args):
+        if not args.skip_version_check:
+            Dependencies().check()
+
+        if self.environment.deployment_type != "infra":
+            raise EnvironmentError("is this an 'infra' deployment directory?")
+
+        if not args.skip_environment:
+            print(self.environment.pretty_print(args, obfuscate=True))
+
+        if (not args.skip_vault and self.environment.use_vault) or args.force_vault:
+            print("\n==> vault refresh\n")
+            self.environment.vault_refresh()
+
+        if (not args.skip_skeleton) or args.force_skeleton:
+            print("\n==> skeleton clean\n")
+            skeleton = Skeleton(environment=self.environment)
+            skeleton.clean()
+
+            print("\n==> skeleton apply\n")
+            skeleton.apply()
+
+        self.terraform = Terraform(environment=self.environment)
+        terraform_initialized = Path(".terraform").exists()
+        if (not args.skip_terraform_init) or args.force_terraform_init:
+            print("\n==> terraform init\n")
+            self.terraform.init()
+
+    def run(self):
+        parser = ExtendedHelpArgumentParser(usage="\n  fy opa rn [-h|--help]")
+        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
+        parser.add_argument(
+            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+        )
+        parser.add_argument(
+            "--skip-environment", help="skip environment", action="store_true"
+        )
+        parser.add_argument(
+            "--skip-skeleton", help="skip skeleton", action="store_true"
+        )
+        parser.add_argument(
+            "--force-skeleton",
+            help="force skeleton update even if _variables.auto.tfvars is already present",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--force-vault",
+            help="force use of vault even if a gcp account is already active",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--skip-terraform-init", help="skip terraform init", action="store_true"
+        )
+        parser.add_argument(
+            "--force-terraform-init",
+            help="force terraform to initialize even if .terraform is already present",
+            action="store_true",
+        )
+        args = parser.parse_args(sys.argv[3:])
+
+        self._setup(args)
+
+        try:
+            # self._terraform_init()
+            # self._cleanup()
+
+            self.opa = Opa(environment=self.environment, terraform=self.terraform)
+            self.opa.run()
+        except Exception as error:
+            self._handle_error(error, args)
+
+    def _handle_error(self, error, args):
+        print("\n==> exception caught!")
+        self._cleanup()
+        print("\n==> stack trace\n")
+        raise
+
+    def _cleanup(self):
+        print("\n==> initializing clean-up")
+        self.opa.cleanup()
+        if self.environment.use_vault:
+            self.environment.vault_cleanup()
+        else:
+            print("\nnothing to do")
+

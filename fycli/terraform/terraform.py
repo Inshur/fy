@@ -77,6 +77,13 @@ class Terraform:
         else:
             self._exec("terraform plan")
 
+    def plan_out(self, filename="tfplan"):
+        if os.environ.get("TERRAFORM_CLI_ARGS_PLAN"):
+            self._exec(f"terraform plan --out {filename}.binary {os.environ.get('TERRAFORM_CLI_ARGS_PLAN')}")
+        else:
+            self._exec(f"terraform plan --out {filename}.binary")
+        self._exec(f"terraform show -json {filename}.binary > {filename}.json")
+
     # FIXME
     # * probably replace this with --terraform-args argument?
     def apply(self):
@@ -98,8 +105,8 @@ class Terraform:
         #   encrypted by default, see: https://github.com/liamg/tfsec/issues/137
         output = (
             tfsec(".", "--exclude=GCP002", _ok_code=[0, 1])
-            .stdout.decode("UTF-8")
-            .rstrip()
+                .stdout.decode("UTF-8")
+                .rstrip()
         )
 
         # trim this pointless output when no problems detected: '0 potential problems detected:'
@@ -129,7 +136,7 @@ class Terraform:
             exit(process.returncode)
 
     def _upload_blob(
-        self, project_id, bucket_name, source_file_name, destination_blob_name
+            self, project_id, bucket_name, source_file_name, destination_blob_name
     ):
         """Uploads a file to the bucket."""
         # project_id = "gcp project ID with which to associate quota"

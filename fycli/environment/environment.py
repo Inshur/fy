@@ -72,9 +72,7 @@ class Environment:
     original_kube_context: any = None
     kubectl_context: any = None
 
-    opa_template_dir: any = None
-    opa_template_file: any = None
-    opa_rules_file: any = None
+    opa_config: dict = None
 
     # Bare minimum initialization that can be used for most basic operations
     def __post_init__(self):
@@ -101,6 +99,9 @@ class Environment:
     def initialize_gcp(self):
         self._set_org_id()
         self._set_project_id()
+
+    def initialize_opa(self):
+        self._set_opa_config()
 
     #
     # Common environment
@@ -344,6 +345,21 @@ class Environment:
             print(f"Please create config file in iac root directory: {fyrc}")
             exit(1)
         #  FIXME: this looks wrong - shouldn't this be KeyError?
+        except TypeError:
+            print(f"Invalid fyrc file, is org_id set?")
+            exit(1)
+
+    #
+    # OPA config
+    #
+
+    def _set_opa_config(self):
+        fyrc = Path(self.iac_root_dir, ".fyrc.yaml")
+        try:
+            self.opa_config = yaml.safe_load(open(fyrc))["config"]["opa"]
+        except FileNotFoundError:
+            print(f"Please create config file in iac root directory: {fyrc}")
+            exit(1)
         except TypeError:
             print(f"Invalid fyrc file, is org_id set?")
             exit(1)

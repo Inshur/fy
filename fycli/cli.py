@@ -15,13 +15,13 @@ from .module.cli import ModuleCLI  # noqa: F401
 from .skeleton.cli import SkeletonCLI  # noqa: F401
 from .vault.cli import VaultCLI  # noqa: F401
 from .vault.vault_lease import VaultError
+from .opa.cli import OpaCLI  # noqa: F401
 from .version import __version__
 
 
 class DeepArgParser:
     def __init__(self):
 
-        print("------ ENTRY POINT ------")
         try:
             self.parse_args()
         except (
@@ -45,6 +45,7 @@ class DeepArgParser:
                   k8s           manage kubernetes deployment from app dir
                   module        manage kubernetes modules
                   dependencies  check fy dependencies
+                  opa           verify terraform config with OPA rules
                 """
             ),
         )
