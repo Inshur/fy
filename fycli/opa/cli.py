@@ -106,9 +106,6 @@ class OpaCLI:
         self._setup(args)
 
         try:
-            # self._terraform_init()
-            # self._cleanup()
-
             self.opa = Opa(environment=self.environment, terraform=self.terraform)
             self.opa.run()
         except Exception as error:
