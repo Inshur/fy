@@ -21,7 +21,7 @@ A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools 
 
 ### OS-X
 
-```
+```shell
 curl https://sdk.cloud.google.com | bash
 gcloud components install kubectl alpha beta
 brew tap k14s/tap
@@ -39,7 +39,7 @@ pipx install git+https://github.com/Inshur/fy --force
 
 ### Ubuntu 20.10+
 
-```
+```shell
 # Get current version from https://github.com/Inshur/inshur-iac/blob/master/.fy.lock
 export GOOGLE_CLOUD_SDK_VERSION=339.0.0
 export TERRAFORM_VERSION=0.14.11
@@ -90,7 +90,7 @@ curl -L "https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfse
   && chmod +x "${HOME}/bin/tfsec"
 
 # OPA
-curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64 \
+curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static \
   > /bin/opa \
   && chmod +x /bin/opa
   
@@ -106,7 +106,7 @@ pip install fycli
 Update the dependency versions in the `Dockerfile`.
 
 Create a new release:
-```
+```shell
 python -m venv venv
 source venv/bin/activate
 make build-deps
@@ -116,6 +116,16 @@ git push --tags
 ```
 
 Push new version to `pypi` (requires auth):
-```
+```shell
 make clean push
+```
+
+## Local Development
+```shell
+python -m venv venv
+pip install pyyaml toml
+make build-deps
+poetry install
+export PYTHON_PATH=${PWD}/fycli
+python -m fycli -v
 ```
