@@ -47,7 +47,7 @@ RUN \
 RUN \
   curl -L https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfsec-linux-amd64 \
   > /bin/tfsec \
-  && chmod +x /bin/tfsec \
+  && chmod +x /bin/tfsec
 
 RUN \
   curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64 \
