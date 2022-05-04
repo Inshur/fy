@@ -50,7 +50,7 @@ RUN \
   && chmod +x /bin/tfsec
 
 RUN \
-  curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64 \
+  curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static \
   > /bin/opa \
   && chmod +x /bin/opa
 
