@@ -19,7 +19,7 @@ class SkeletonCLI:
         parser = ExtendedHelpArgumentParser(
             usage=dedent(
                 """
-                  fy deploy <command> [-h|--help]
+                  fy skeleton <command> [-h|--help]
 
                 commands:
                   apply      apply skeleton to current directory
@@ -41,7 +41,7 @@ class SkeletonCLI:
         getattr(self, subcommand)()
 
     def apply(self):
-        parser = ExtendedHelpArgumentParser(usage="\n  fy skeleton plan [-h|--help]")
+        parser = ExtendedHelpArgumentParser(usage="\n  fy skeleton apply [-h|--help]")
         parser.parse_args(sys.argv[3:4])
 
         print("\n==> skeleton apply\n")

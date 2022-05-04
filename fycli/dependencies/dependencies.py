@@ -11,7 +11,7 @@ from pkg_resources import parse_version
 
 try:
     from sh import (fy, gcloud, kube_score, kubectl, terraform, tfenv, tfsec,
-                    vault, which)
+                    vault, which, opa)
 except ImportError as error:
     for command in [
         "fy",
@@ -23,6 +23,7 @@ except ImportError as error:
         "vault",
         "which",
         "tfenv",
+        "opa"
     ]:
         if re.search(r".*'" + command + "'.*", str(error)):
             print(f"Could not find {command}(1) in path, please install {command}!")
@@ -111,6 +112,10 @@ class Dependencies:
         elif executable == "tfsec":
             output = tfsec(version=True).stdout.decode("UTF-8").strip()
             version = self._remove_prefix(output, "v")
+
+        elif executable == "opa":
+            output = opa.version().stdout.decode("UTF-8").strip()
+            version = self._remove_prefix(output.splitlines()[0], "Version:")
 
         else:
             raise KeyError(f"Executable not found in fy lockfile: {executable}")

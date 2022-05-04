@@ -7,6 +7,7 @@ ENV VAULT_VERSION=1.2.3
 ENV KUBE_SCORE_VERSION=1.11.0
 ENV TFSEC_VERSION=0.39.29
 ENV KAPP_VERSION=0.35.0
+ENV OPA_VERSION=0.39.0
 
 RUN \
   apt-get update \
@@ -46,7 +47,12 @@ RUN \
 RUN \
   curl -L https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfsec-linux-amd64 \
   > /bin/tfsec \
-  && chmod +x /bin/tfsec
+  && chmod +x /bin/tfsec \
+
+RUN \
+  curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64 \
+  > /bin/opa \
+  && chmod +x /bin/opa
 
 RUN \
   mkdir fy
