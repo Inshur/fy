@@ -17,6 +17,7 @@ A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools 
 * [kapp](https://get-kapp.io/)
 * [tfsec](https://github.com/tfsec/tfsec)
 * [kube-score](https://github.com/zegl/kube-score)
+* [opa](https://www.openpolicyagent.org)
 
 ### OS-X
 
@@ -26,6 +27,7 @@ gcloud components install kubectl alpha beta
 brew tap k14s/tap
 brew install tfsec vault terraform kapp
 brew install kube-score/tap/kube-score
+brew install opa
 
 # install via pypi
 pip install fycli --upgrade
@@ -45,7 +47,7 @@ export VAULT_VERSION=1.2.3
 export KUBE_SCORE_VERSION=1.11.0
 export TFSEC_VERSION=0.39.29
 export KAPP_VERSION=0.35.0
-
+export OPA_VERSION=0.39.0
 # python3.9 
 # Note: do not set this as default system python, use a venv
 sudo apt-get install virtualenv
@@ -87,6 +89,11 @@ curl -L "https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfse
   > "${HOME}/bin/tfsec" \
   && chmod +x "${HOME}/bin/tfsec"
 
+# OPA
+curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64 \
+  > /bin/opa \
+  && chmod +x /bin/opa
+  
 # configure venv
 /usr/bin/virtualenv -p /usr/bin/python3.9 venv
 source venv/bin/activate

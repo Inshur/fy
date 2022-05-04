@@ -361,7 +361,7 @@ class Environment:
             print(f"Please create config file in iac root directory: {fyrc}")
             exit(1)
         except TypeError:
-            print(f"Invalid fyrc file, is org_id set?")
+            print(f"Invalid fyrc file, is config opa set?")
             exit(1)
 
     #
