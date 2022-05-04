@@ -35,12 +35,14 @@ class Opa:
                 response = False
                 error_output = self._exec(f"opa eval -i tfplan.json -d {filename} 'data.{package_name}.deny'")
                 error = json.loads(error_output)
-                print("--- OPA Validation Errors ---\n")
+                print("--- OPA validation errors ---\n")
                 print(*error['result'][0]['expressions'][0]['value'], sep="\n")
 
         self.cleanup()
         if not response:
             exit(1)
+        else:
+            print("--- OPA verification complete ---")
 
     def cleanup(self):
         self._delete_file(os.path.join(self.environment.deployment_path,'tfplan.binary'))
