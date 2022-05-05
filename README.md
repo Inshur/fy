@@ -47,7 +47,7 @@ export VAULT_VERSION=1.2.3
 export KUBE_SCORE_VERSION=1.11.0
 export TFSEC_VERSION=0.39.29
 export KAPP_VERSION=0.35.0
-export OPA_VERSION=0.39.0
+export OPA_VERSION=0.40.0
 # python3.9 
 # Note: do not set this as default system python, use a venv
 sudo apt-get install virtualenv
