@@ -24,7 +24,7 @@ RUN \
   && gcloud -q components install kubectl alpha beta
 
 RUN \
-  curl -L https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-darwin-amd64 \
+  curl -L https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64 \
   > /bin/kubectl-argo-rollouts \
   && chmod +x /bin/kubectl-argo-rollouts
 
