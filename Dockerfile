@@ -1,7 +1,7 @@
 FROM python:3.9.1-slim
 
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin:/tfenv/bin
-ENV GOOGLE_CLOUD_SDK_VERSION=371.0.0
+ENV GOOGLE_CLOUD_SDK_VERSION=398.0.0
 ENV TERRAFORM_VERSION=1.1.7
 ENV VAULT_VERSION=1.2.3
 ENV KUBE_SCORE_VERSION=1.11.0
@@ -23,10 +23,14 @@ RUN \
   && rm -v /tmp/google-cloud-sdk.tar.gz \
   && gcloud -q components install kubectl alpha beta
 
+RUN \
+  curl -L https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-darwin-amd64 \
+  > /bin/kubectl-argo-rollouts \
+  && chmod +x /bin/kubectl-argo-rollouts
 
 RUN \
-  git clone https://github.com/tfutils/tfenv.git /tfenv && \
-  tfenv install ${TERRAFORM_VERSION}
+  git clone https://github.com/tfutils/tfenv.git /tfenv \
+  && tfenv install ${TERRAFORM_VERSION}
 
 RUN \
   curl -L https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64 \
