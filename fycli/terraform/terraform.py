@@ -104,7 +104,7 @@ class Terraform:
         # * ignore GCP002 error about unencrypted buckets since buckets are
         #   encrypted by default, see: https://github.com/liamg/tfsec/issues/137
         output = (
-            tfsec(".", "--exclude=GCP002", _ok_code=[0, 1])
+            tfsec(".", "--exclude=GCP002", _ok_code=[0, 1, 2])
                 .stdout.decode("UTF-8")
                 .rstrip()
         )
