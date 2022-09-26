@@ -11,6 +11,7 @@ from ..environment.environment import Environment, EnvironmentError
 from ..skeleton.skeleton import Skeleton
 from ..terraform.terraform import Terraform
 
+
 @dataclass
 class InfraCLI:
     trace: bool
@@ -55,6 +56,9 @@ class InfraCLI:
         if not args.skip_environment:
             print(self.environment.pretty_print(args, obfuscate=True))
 
+        if args.skip_vault:
+            self.environment.use_vault = False
+
         if (not args.skip_vault and self.environment.use_vault) or args.force_vault:
             print("\n==> vault refresh\n")
             self.environment.vault_refresh()
@@ -73,7 +77,10 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra init [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -105,7 +112,10 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra plan [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -160,7 +170,10 @@ class InfraCLI:
         )
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -215,7 +228,10 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra apply [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -279,7 +295,10 @@ class InfraCLI:
         )
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--force-vault",
@@ -303,7 +322,10 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra tfsec [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -355,7 +377,10 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra destroy [-h|--help]")
         parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
