@@ -1,4 +1,4 @@
-FROM python:3.9.1-slim
+FROM python:3.9.10-slim
 
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin:/tfenv/bin
 ENV GOOGLE_CLOUD_SDK_VERSION=402.0.0
