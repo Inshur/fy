@@ -18,8 +18,6 @@ from pathlib import Path, PurePath
 
 import yaml
 
-from ..vault.vault_leases import VaultLeases
-
 try:
     from sh import gcloud
 except ImportError as error:
@@ -49,16 +47,9 @@ class Environment:
     iac_root_dir: str = field(init=False)
 
     config_dir: str = os.path.join(os.environ["HOME"], ".config/fy")
-    vault_dir: str = os.path.join(os.environ["HOME"], ".config/fy/vault")
 
     project_id: any = None
     project_number: any = None
-
-    use_vault: any = None
-    vault_addr: any = None
-    vault_token: any = None
-    vault_role: any = None
-    vault_leases: any = None
 
     k8s_cluster: any = None
     k8s_app: any = None
@@ -66,7 +57,6 @@ class Environment:
 
     credentials_dir: any = None
     gcp_account_original: any = None
-    gcp_account_vault: any = None
     additional_projects: any = None
     google_application_credentials: any = None
     original_kube_context: any = None
@@ -80,7 +70,6 @@ class Environment:
         self._detect_deployment_type()
         self._configure_deployment_environment()
         self._set_gcp_account_original()
-        self._set_use_vault()
         self._set_env()
 
     #
@@ -89,12 +78,6 @@ class Environment:
 
     def initialize_skeleton(self):
         self._set_project_number()
-
-    def initialize_vault(self):
-        self._configure_vault()
-        self._set_credentials_dir()
-        self._set_google_application_credentials()
-        self._set_additional_projects()
 
     def initialize_gcp(self):
         self._set_org_id()
@@ -124,7 +107,7 @@ class Environment:
         if PurePath(self.deployment_path).match("**/deployment/*/*/*/app/cluster/*"):
             self.deployment_type = "k8s_cluster"
         elif PurePath(self.deployment_path).match(
-            "**/deployment/*/*/*/app/cluster/*/*"
+                "**/deployment/*/*/*/app/cluster/*/*"
         ):
             self.deployment_type = "k8s_app"
         elif PurePath(self.deployment_path).match("**/deployment/*/*/*/infra"):
@@ -163,13 +146,6 @@ class Environment:
         if active:
             self.gcp_account_original = active[0]
 
-    #  If a gcloud context isn't set, assume we're using vault
-    def _set_use_vault(self):
-        if self.gcp_account_original:
-            self.use_vault = False
-        else:
-            self.use_vault = True
-
     #
     # Skeleton environment
     #
@@ -183,92 +159,8 @@ class Environment:
         self.project_number = project_data["projectNumber"]
 
     #
-    # Vault environment
-    #
-
-    def _configure_vault(self):
-        try:
-            self.vault_role = os.environ["VAULT_ROLE"]
-            self.vault_addr = os.environ["VAULT_ADDR"]
-            self.vault_token = os.environ["VAULT_TOKEN"]
-        except KeyError as error:
-            raise EnvironmentError(f"variable not set: {error}")
-
-    def _set_credentials_dir(self):
-        self.credentials_dir = os.path.join(
-            os.environ["HOME"], self.config_dir, "gcp/credentials"
-        )
-
-    def _set_google_application_credentials(self):
-        self.google_application_credentials = os.path.join(
-            self.credentials_dir, f"{self.project_id}_{self.vault_role}.json"
-        )
-
-    def _set_gcp_account_vault(self):
-        active = self._get_active_gcp_account()
-        if active:
-            self.gcp_account_vault = active[0]
-
-    def _set_additional_projects(self):
-        collection = []
-        for providers_file in Path(".").glob("*.providers.yml"):
-            providers = yaml.safe_load(open(providers_file))["providers"]["gcp"]
-            collection = collection + providers
-        self.additional_projects = collection
-
-    def vault_refresh(self):
-        self.initialize_vault()
-        self.vault_leases = VaultLeases(environment=self)
-        self.vault_leases.read()
-        self._set_vault_env()
-        self._activate_application_credentials()
-        self._set_gcp_account_vault()
-        self._set_vault_env()
-
-    def vault_cleanup(self):
-        self.vault_leases.revoke()
-        print(gcloud.config.unset.account(_env=self.env).stdout.decode("UTF-8"))
-        print(
-            gcloud.auth.revoke(self.gcp_account_vault, _env=self.env).stdout.decode(
-                "UTF-8"
-            )
-        )
-        self.google_application_credentials = None
-
-    def _activate_application_credentials(self):
-        print(f"\n==> activating service account\n")
-        print(
-            gcloud.auth(
-                "activate-service-account",
-                "--key-file",
-                self.google_application_credentials,
-                _err_to_out=True,
-                _env=self.env,
-            )
-            .stdout.decode("UTF-8")
-            .rstrip()
-        )
-
-    #
     # GKE
     #
-
-    def _set_vault_env(self):
-        self.env = {
-            **self.env,
-            **{"CLOUDSDK_CONFIG": os.path.join(self.config_dir, "gcloud")},
-            **self._application_credentials(),
-        }
-
-    def _application_credentials(self):
-        if self.use_vault:
-            credentials = {
-                "GOOGLE_APPLICATION_CREDENTIALS": self.google_application_credentials
-            }
-        else:
-            credentials = {}
-
-        return credentials
 
     def activate_container_cluster_context(self):
         print(f"\n==> activate container cluster credentials\n")
@@ -377,7 +269,7 @@ class Environment:
 
         properties = self._filter_keys(
             populated_properties,
-            ["vault_dir", "credentials_dir", "use_vault", "env", "kubectl_context"],
+            [ "credentials_dir", "env", "kubectl_context"],
         )
 
         if obfuscate:
@@ -387,9 +279,6 @@ class Environment:
 
     def pretty_print(self, args, obfuscate: False):
         self.initialize_gcp()
-
-        if not args.skip_vault and self.use_vault:
-            self.initialize_vault()
 
         padding = len(max(self.properties(obfuscate).keys(), key=len)) + 1
 
@@ -402,9 +291,6 @@ class Environment:
     def sh(self, args, obfuscate: False):
         self.initialize_gcp()
 
-        if not args.skip_vault and self.use_vault:
-            self.initialize_vault()
-
         return "\n".join(
             f'{key.upper()}="{value}"'
             for key, value in self.properties(obfuscate).items()
@@ -412,9 +298,6 @@ class Environment:
 
     def json(self, args, obfuscate: False):
         self.initialize_gcp()
-
-        if not args.skip_vault and self.use_vault:
-            self.initialize_vault()
 
         return json.dumps(self.properties(obfuscate))
 

@@ -53,10 +53,6 @@ class OpaCLI:
         if not args.skip_environment:
             print(self.environment.pretty_print(args, obfuscate=True))
 
-        if (not args.skip_vault and self.environment.use_vault) or args.force_vault:
-            print("\n==> vault refresh\n")
-            self.environment.vault_refresh()
-
         if (not args.skip_skeleton) or args.force_skeleton:
             print("\n==> skeleton clean\n")
             skeleton = Skeleton(environment=self.environment)
@@ -73,7 +69,6 @@ class OpaCLI:
 
     def run(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy opa rn [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
         )
@@ -86,11 +81,6 @@ class OpaCLI:
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -113,15 +103,7 @@ class OpaCLI:
 
     def _handle_error(self, error, args):
         print("\n==> exception caught!")
-        self._cleanup()
         print("\n==> stack trace\n")
         raise
 
-    def _cleanup(self):
-        print("\n==> initializing clean-up")
-        self.opa.cleanup()
-        if self.environment.use_vault:
-            self.environment.vault_cleanup()
-        else:
-            print("\nnothing to do")
 
