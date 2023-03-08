@@ -8,7 +8,7 @@ install:
 	pip install fycli
 
 build-deps:
-	pip install --upgrade build twine poetry
+	pip install --upgrade setuptools build twine poetry
 
 build: build-deps
 	python -m build
