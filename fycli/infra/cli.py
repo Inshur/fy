@@ -56,13 +56,6 @@ class InfraCLI:
         if not args.skip_environment:
             print(self.environment.pretty_print(args, obfuscate=True))
 
-        if args.skip_vault:
-            self.environment.use_vault = False
-
-        if (not args.skip_vault and self.environment.use_vault) or args.force_vault:
-            print("\n==> vault refresh\n")
-            self.environment.vault_refresh()
-
         if (not args.skip_skeleton) or args.force_skeleton:
             print("\n==> skeleton clean\n")
             skeleton = Skeleton(environment=self.environment)
@@ -75,7 +68,6 @@ class InfraCLI:
 
     def init(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra init [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
@@ -93,24 +85,18 @@ class InfraCLI:
             help="force skeleton update even if _variables.auto.tfvars is already present",
             action="store_true",
         )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
-            action="store_true",
-        )
+
         args = parser.parse_args(sys.argv[3:])
 
         self._setup(args)
 
         try:
             self._terraform_init()
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
     def plan(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra plan [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
@@ -126,11 +112,6 @@ class InfraCLI:
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -160,7 +141,6 @@ class InfraCLI:
             self._terraform_skip_or_validate(args)
             self._terraform_skip_or_tfsec(args)
             self._terraform_plan()
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
@@ -168,7 +148,6 @@ class InfraCLI:
         parser = ExtendedHelpArgumentParser(
             usage="\n  fy infra plan-and-apply [-h|--help]"
         )
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
@@ -184,11 +163,6 @@ class InfraCLI:
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -220,13 +194,11 @@ class InfraCLI:
             self._terraform_plan()
             self._terraform_apply()
             self._modules_update()
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
     def apply(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra apply [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
@@ -242,11 +214,6 @@ class InfraCLI:
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -277,7 +244,6 @@ class InfraCLI:
             self._terraform_skip_or_tfsec(args)
             self._terraform_apply()
             self._modules_update()
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
@@ -293,16 +259,10 @@ class InfraCLI:
             help="force skeleton update even if _variables.auto.tfvars is already present",
             action="store_true",
         )
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
             help="skip dependency version check",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -314,13 +274,11 @@ class InfraCLI:
 
         try:
             self._modules_update()
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
     def tfsec(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra tfsec [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
@@ -336,11 +294,6 @@ class InfraCLI:
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -369,13 +322,11 @@ class InfraCLI:
             self._terraform_skip_or_init(args)
             self._terraform_skip_or_validate(args)
             self._tfsec(args)
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
     def destroy(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy infra destroy [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s",
             "--skip-version-check",
@@ -391,11 +342,6 @@ class InfraCLI:
         parser.add_argument(
             "--force-skeleton",
             help="force skeleton update even if _variables.auto.tfvars is already present",
-            action="store_true",
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
             action="store_true",
         )
         parser.add_argument(
@@ -419,7 +365,6 @@ class InfraCLI:
             self._terraform_skip_or_init(args)
             self._terraform_skip_or_validate(args)
             self._terraform_destroy()
-            self._cleanup()
         except Exception as error:
             self._handle_error(error, args)
 
@@ -491,13 +436,6 @@ class InfraCLI:
 
     def _handle_error(self, error, args):
         print("\n==> exception caught!")
-        self._cleanup()
         print("\n==> stack trace\n")
         raise
 
-    def _cleanup(self):
-        print("\n==> initializing clean-up")
-        if self.environment.use_vault:
-            self.environment.vault_cleanup()
-        else:
-            print("\nnothing to do")

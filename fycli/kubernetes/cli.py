@@ -71,10 +71,6 @@ class K8sCLI:
         if not args.skip_environment:
             print(self.environment.pretty_print(args, obfuscate=True))
 
-        if (not args.skip_vault and self.environment.use_vault) or args.force_vault:
-            print("\n==> vault refresh\n")
-            self.environment.vault_refresh()
-
         if disable_gcloud_sandbox:
             try:
                 del self.environment.env["KUBECONFIG"]
@@ -119,17 +115,11 @@ class K8sCLI:
 
     def use(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s use [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
-            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -138,21 +128,13 @@ class K8sCLI:
         except Exception as error:
             self._handle_error(error)
 
-        self._cleanup()
-
     def diff(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s diff [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
-            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -163,11 +145,8 @@ class K8sCLI:
         except Exception as error:
             self._handle_error(error)
 
-        self._cleanup()
-
     def apply(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s apply [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
         )
@@ -179,11 +158,6 @@ class K8sCLI:
         )
         parser.add_argument(
             "--skip-kube-score", help="skip kube-score", action="store_true"
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
-            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -280,11 +254,8 @@ class K8sCLI:
         except Exception as error:
             self._handle_error(error)
 
-        self._cleanup()
-
     def plan(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s plan [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
         )
@@ -296,11 +267,6 @@ class K8sCLI:
         )
         parser.add_argument(
             "--skip-kube-score", help="skip kube-score", action="store_true"
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
-            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -400,21 +366,13 @@ class K8sCLI:
         except Exception as error:
             self._handle_error(error)
 
-        self._cleanup()
-
     def delete(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s delete [-h|--help]")
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         parser.add_argument(
             "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
-        )
-        parser.add_argument(
-            "--force-vault",
-            help="force use of vault even if a gcp account is already active",
-            action="store_true",
         )
         args = parser.parse_args(sys.argv[3:])
 
@@ -472,8 +430,6 @@ class K8sCLI:
                 )
         except Exception as error:
             self._handle_error(error)
-
-        self._cleanup()
 
     def _diff(self):
         try:
@@ -633,13 +589,6 @@ class K8sCLI:
 
     def _handle_error(self, error):
         print("\n==> exception caught!")
-        self._cleanup()
         print("\n==> stack trace\n")
         raise
 
-    def _cleanup(self):
-        print("\n==> initializing clean-up")
-        if self.environment.use_vault:
-            self.environment.vault_cleanup()
-        else:
-            print("\nnothing to do")

@@ -41,7 +41,6 @@ class EnvCLI:
         parser.add_argument(
             "-r", "--raw", help="do not obfuscate secrets", action="store_false"
         )
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         args = parser.parse_args(sys.argv[3:])
 
         self.environment = Environment()
@@ -53,7 +52,6 @@ class EnvCLI:
         parser.add_argument(
             "-r", "--raw", help="do not obfuscate secrets", action="store_false"
         )
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         args = parser.parse_args(sys.argv[3:])
 
         self.environment = Environment()
@@ -65,7 +63,6 @@ class EnvCLI:
         parser.add_argument(
             "-r", "--raw", help="do not obfuscate secrets", action="store_false"
         )
-        parser.add_argument("--skip-vault", help="skip vault", action="store_true")
         args = parser.parse_args(sys.argv[3:])
 
         self.environment = Environment()

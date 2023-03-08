@@ -13,8 +13,6 @@ from .infra.cli import InfraCLI  # noqa: F401
 from .kubernetes.cli import K8sCLI  # noqa: F401
 from .module.cli import ModuleCLI  # noqa: F401
 from .skeleton.cli import SkeletonCLI  # noqa: F401
-from .vault.cli import VaultCLI  # noqa: F401
-from .vault.vault_lease import VaultError
 from .opa.cli import OpaCLI  # noqa: F401
 from .version import __version__
 
@@ -40,7 +38,6 @@ class DeepArgParser:
                 commands:
                   env           establish environment from deployment context
                   skeleton      manage deployment context symlinks and boilerplate manifests
-                  vault         manage access to deployment target via vault
                   infra         manage infrastructure from deployment context
                   k8s           manage kubernetes deployment from app dir
                   module        manage kubernetes modules
@@ -84,11 +81,6 @@ class DeepArgParser:
         except EnvironmentError as error:
             if not trace:
                 print(f"Error: {error}")
-                exit(1)
-            raise
-        except VaultError as error:
-            if not trace:
-                print(f"\nError: {error}")
                 exit(1)
             raise
 

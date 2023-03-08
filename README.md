@@ -43,7 +43,6 @@ pipx install git+https://github.com/Inshur/fy --force
 # Get current version from https://github.com/Inshur/inshur-iac/blob/master/.fy.lock
 export GOOGLE_CLOUD_SDK_VERSION=339.0.0
 export TERRAFORM_VERSION=0.14.11
-export VAULT_VERSION=1.2.3
 export KUBE_SCORE_VERSION=1.11.0
 export TFSEC_VERSION=0.39.29
 export KAPP_VERSION=0.35.0
@@ -68,12 +67,6 @@ sudo apt-get install kubectl
 
 # tfenv
 tfenv install "${TERRAFORM_VERSION}"
-
-# vault
-curl "https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" \
-  > "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
-  && unzip -d "${HOME}/bin" "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip" \
-  && rm -f "/tmp/vault_${VAULT_VERSION}_linux_amd64.zip"
 
 # kapp
 curl -L "https://github.com/vmware-tanzu/carvel-kapp/releases/download/v${KAPP_VERSION}/kapp-linux-amd64" \

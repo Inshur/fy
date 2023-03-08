@@ -1,9 +1,8 @@
-FROM python:3.9.1-slim
+FROM python:3.9.10-slim
 
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin:/tfenv/bin
 ENV GOOGLE_CLOUD_SDK_VERSION=402.0.0
 ENV TERRAFORM_VERSION=1.2.9
-ENV VAULT_VERSION=1.2.3
 ENV KUBE_SCORE_VERSION=1.11.0
 ENV TFSEC_VERSION=1.27.6
 ENV KAPP_VERSION=0.35.0
@@ -37,11 +36,6 @@ RUN \
   > /bin/kapp \
   && chmod +x /bin/kapp
 
-RUN \
-  curl https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
-  > /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
-  && unzip -d /bin /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
-  && rm -f vault_${VAULT_VERSION}_linux_amd64.zip
 
 RUN \
   curl -L https://github.com/zegl/kube-score/releases/download/v${KUBE_SCORE_VERSION}/kube-score_${KUBE_SCORE_VERSION}_linux_amd64 \
