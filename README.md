@@ -104,6 +104,7 @@ python -m venv venv
 source venv/bin/activate
 make build-deps
 make version-patch
+git commit -a -m "Added new version $(make version-show)"
 git tag "$(make version-show)"
 git push --tags
 ```

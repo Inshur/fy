@@ -100,10 +100,6 @@ class Dependencies:
             )
             version = output["terraform_version"]
 
-        elif executable == "vault":
-            output = vault.version().stdout.decode("UTF-8").strip()
-            version = self._remove_prefix(self._strip_ansi_reset(output), "Vault v")
-
         elif executable == "kube-score":
             output = kube_score.version().stdout.decode("UTF-8").strip()
             version = output.split(" ")[2].rstrip(",")
