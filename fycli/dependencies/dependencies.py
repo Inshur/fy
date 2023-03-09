@@ -11,7 +11,7 @@ from pkg_resources import parse_version
 
 try:
     from sh import (fy, gcloud, kube_score, kubectl, terraform, tfenv, tfsec,
-                    vault, which, opa)
+                    which, opa)
 except ImportError as error:
     for command in [
         "fy",
@@ -20,7 +20,6 @@ except ImportError as error:
         "kubectl",
         "terraform",
         "tfsec",
-        "vault",
         "which",
         "tfenv",
         "opa"
