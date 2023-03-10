@@ -88,7 +88,7 @@ class Dependencies:
             # installed but tfenv is in use then the terraform version check will fail
             # due to stdout being filled with garbage from tfenv during terraform binary
             # install.
-            terraform_path = which("terraform")
+            terraform_path = str(which("terraform"))
             if Path(terraform_path).is_symlink():
                 if "tfenv" in Path(terraform_path).resolve().parts:
                     tfenv.install()
