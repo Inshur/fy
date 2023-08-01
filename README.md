@@ -24,8 +24,8 @@ A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools 
 ```shell
 curl https://sdk.cloud.google.com | bash
 gcloud components install kubectl alpha beta
-brew tap k14s/tap
-brew install tfsec vault terraform kapp
+brew tap vmware-tanzu/carvel
+brew install tfsec vault tfenv kapp
 brew install kube-score/tap/kube-score
 brew install opa
 
