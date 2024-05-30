@@ -2,8 +2,8 @@ name: Publish Test Docker image
 
 on:
   push:
-    tags:
-      - 'v0.*-test'
+    branches:
+      - spike/CLOUD-2464_multi-arch-iac-image
 
 jobs:
   push_to_registry:
@@ -12,7 +12,7 @@ jobs:
       - name: Extract Tags
         id: tags
         run: |
-          IMAGE_VERSION="${GITHUB_REF/refs\/tags\//}"
+          IMAGE_VERSION="test"
           TAGS="ghcr.io/inshur/fy-test:$IMAGE_VERSION"
           echo "IMAGE_VERSION=${IMAGE_VERSION}" >> "$GITHUB_ENV"
           echo "TAGS=${TAGS}" >> "$GITHUB_ENV"
@@ -28,8 +28,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_PAT }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Push to GitHub Packages
         uses: docker/build-push-action@v5
