@@ -1,17 +1,18 @@
 [tool.poetry]
 name = "fycli"
-version = "3.4.4"
+version = "3.4.5"
 description = ""
 authors = ["Rob Wilson <roobert@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
 sh = "^1.12.14"
-pyyaml = "^5.3"
+pyyaml = "^6.0.1"
 semver = "^2.13.0"
 Jinja2 = "^3.0.3"
 rich = "^13.3.2"
 google-cloud-storage = "^2.7.0"
+packaging = "^24.1"
 
 [tool.poetry.dev-dependencies]
 
