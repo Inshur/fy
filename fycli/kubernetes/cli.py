@@ -77,7 +77,8 @@ class K8sCLI:
             except KeyError:
                 pass
 
-        self.environment.activate_container_cluster_context()
+        if not os.environ.get('SKIP_KUBECTL_CONFIGURE'):
+            self.environment.activate_container_cluster_context()
 
     def _detect_manifest_dir_type(self):
         fy_deployment_config_file = Path(
