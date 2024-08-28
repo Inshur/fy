@@ -15,7 +15,7 @@ from ..dependencies.dependencies import Dependencies
 from ..environment.environment import Environment, EnvironmentError
 
 try:
-    from sh import kubectl, kube_score, kapp
+    from sh import kapp, kube_score, kubectl
 except ImportError as error:
     for command in ["gcloud", "kube-score", "kubectl", "kapp"]:
         if re.search(r".*'" + command + "'.*", str(error)):
@@ -77,7 +77,8 @@ class K8sCLI:
             except KeyError:
                 pass
 
-        self.environment.activate_container_cluster_context()
+        if not os.environ.get("FY_KUBECTL_CONFIGURE") == "false":
+            self.environment.activate_container_cluster_context()
 
     def _detect_manifest_dir_type(self):
         fy_deployment_config_file = Path(
@@ -116,7 +117,10 @@ class K8sCLI:
     def use(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s use [-h|--help]")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -131,7 +135,10 @@ class K8sCLI:
     def diff(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s diff [-h|--help]")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -148,11 +155,12 @@ class K8sCLI:
     def apply(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s apply [-h|--help]")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
-        parser.add_argument(
-            "--skip-diff", help="skip diff", action="store_true"
-        )
+        parser.add_argument("--skip-diff", help="skip diff", action="store_true")
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
@@ -257,14 +265,15 @@ class K8sCLI:
     def plan(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s plan [-h|--help]")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
         )
-        parser.add_argument(
-            "--skip-diff", help="skip diff", action="store_true"
-        )
+        parser.add_argument("--skip-diff", help="skip diff", action="store_true")
         parser.add_argument(
             "--skip-kube-score", help="skip kube-score", action="store_true"
         )
@@ -369,7 +378,10 @@ class K8sCLI:
     def delete(self):
         parser = ExtendedHelpArgumentParser(usage="\n  fy k8s delete [-h|--help]")
         parser.add_argument(
-            "-s", "--skip-version-check", help="skip dependency version check", action="store_true"
+            "-s",
+            "--skip-version-check",
+            help="skip dependency version check",
+            action="store_true",
         )
         parser.add_argument(
             "--skip-environment", help="skip environment", action="store_true"
@@ -591,4 +603,3 @@ class K8sCLI:
         print("\n==> exception caught!")
         print("\n==> stack trace\n")
         raise
-
