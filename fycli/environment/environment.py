@@ -15,6 +15,7 @@ import re
 import string
 from dataclasses import asdict, dataclass, field
 from pathlib import Path, PurePath
+from sh import kubectl
 
 import yaml
 
@@ -164,6 +165,14 @@ class Environment:
 
     def activate_container_cluster_context(self):
         print(f"\n==> activate container cluster credentials\n")
+
+        # If the user has elected to skip GCloud cluster setup, assume
+        # they have already got a context in the environment.
+        if os.environ.get("FY_KUBECTL_CONFIGURE") == "false":
+            self.kubectl_context = kubectl(
+                "config", "current-context").rstrip()
+            return
+
         zone = self._detect_cluster_zone()
         print(
             gcloud.container.clusters(
