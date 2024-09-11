@@ -1,42 +1,73 @@
-name: Publish Docker image
-
+---
+name: Docker Image
 on:
+  workflow_dispatch:
   push:
     tags:
       - '**'
+    paths:
+      - .github/workflows/tag.yml
+      - Dockerfile
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/tag.yml
+      - Dockerfile
 
 jobs:
-  push_to_registry:
+  build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
     steps:
-      - name: Extract Tags
-        id: tags
-        run: |
-          IMAGE_VERSION="${GITHUB_REF/refs\/tags\//}"
-          TAGS="ghcr.io/inshur/fy:$IMAGE_VERSION"
-          echo "IMAGE_VERSION=${IMAGE_VERSION}" >> ${GITHUB_ENV}
-          echo "TAGS=${TAGS}" >> ${GITHUB_ENV}
-          echo $TAGS
-          echo ::set-output name=tags::${TAGS}
+      - name: Checkout latest commit
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # ratchet:actions/checkout@v4.1.7
 
-      - name: Check out repo
-        uses: actions/checkout@v2
+      - name: Setup docker buildx action
+        uses: docker/setup-buildx-action@988b5a0280414f521da01fcc63a27aeeb4b104db # ratchet:docker/setup-buildx-action@v3.6.1
 
-      - uses: docker/setup-buildx-action@v1
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+      - name: Set Docker metadata
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # ratchet:docker/metadata-action@v5.5.1
+        id: docker_meta
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GHCR_PAT }}
+          images: |
+            europe-west2-docker.pkg.dev/inshur-prod0-repo0/inshur-docker/fy
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+          labels: |
+            org.opencontainers.image.description=Internal tool used for Infrastructure changes.
 
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v2
+      - name: Authenticate to GCP via Workload Identity
+        uses: google-github-actions/auth@62cf5bd3e4211a0a0b51f2c6d6a37129d828611d # ratchet:google-github-actions/auth@v2.1.5
+        id: gcp_login
         with:
-          context: .
-          push: true
-          # failing to use a variable here for some reason:
-          # Error: buildx call failed with: invalid tag "${TAGS}": invalid reference format
-          #tags: inshur/fy:latest
-          tags: ${{ steps.tags.outputs.tags }}
+          token_format: access_token
+          workload_identity_provider: projects/347460233552/locations/global/workloadIdentityPools/github/providers/github
+          service_account: github-pipeline@inshur-prod0-repo0.iam.gserviceaccount.com
+
+      - name: Login to Google Artifact Registry (GAR)
+        id: docker_login
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # ratchet:docker/login-action@v3.3.0
+        with:
+          registry: europe-west2-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.gcp_login.outputs.access_token }}
+
+      - name: Build & push image to GAR
+        id: build_push
+        uses: docker/build-push-action@5cd11c3a4ced054e52742c5fd54dca954e0edd85 # ratchet:docker/build-push-action@v6.7.0
+        with:
+          cache-from: type=registry,ref=europe-west2-docker.pkg.dev/inshur-prod0-repo0/inshur-docker/fy:cache
+          cache-to: type=registry,ref=europe-west2-docker.pkg.dev/inshur-prod0-repo0/inshur-docker/fy:cache,mode=max
+          push: ${{ github.event_name != 'pull_request' }}
+          file: Dockerfile
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+
