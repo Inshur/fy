@@ -6,7 +6,7 @@ F-Yeah!
 
 ## Description
 
-A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools to ease common deployment workflows.
+A tool to wrap `vault`, `terraform`, `kubectl` and various other tools to ease common deployment workflows.
 
 ## Install
 
@@ -19,7 +19,6 @@ A tool to wrap `vault(1)`, `terraform(1)`, `kubectl(1)` and various other tools 
 * [kapp](https://get-kapp.io/)
 * [tfsec](https://github.com/tfsec/tfsec)
 * [kube-score](https://github.com/zegl/kube-score)
-* [opa](https://www.openpolicyagent.org)
 
 ### OS-X
 
@@ -29,7 +28,6 @@ gcloud components install kubectl alpha beta
 brew tap vmware-tanzu/carvel
 brew install tfsec vault tfenv kapp
 brew install kube-score/tap/kube-score
-brew install opa
 
 # install via pypi
 pip install fycli --upgrade
@@ -48,7 +46,6 @@ export TERRAFORM_VERSION=0.14.11
 export KUBE_SCORE_VERSION=1.11.0
 export TFSEC_VERSION=0.39.29
 export KAPP_VERSION=0.35.0
-export OPA_VERSION=0.40.0
 # python3.9 
 # Note: do not set this as default system python, use a venv
 sudo apt-get install virtualenv
@@ -84,11 +81,6 @@ curl -L "https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfse
   > "${HOME}/bin/tfsec" \
   && chmod +x "${HOME}/bin/tfsec"
 
-# OPA
-curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static \
-  > /bin/opa \
-  && chmod +x /bin/opa
-  
 # configure venv
 /usr/bin/virtualenv -p /usr/bin/python3.9 venv
 source venv/bin/activate
@@ -101,6 +93,7 @@ pip install fycli
 Update the dependency versions in the `Dockerfile`.
 
 Create a new release:
+
 ```shell
 python -m venv venv
 source venv/bin/activate
@@ -112,11 +105,13 @@ git push --tags
 ```
 
 Push new version to `pypi` (requires auth):
+
 ```shell
 make clean push
 ```
 
 ## Local Development
+
 ```shell
 python -m venv venv
 pip install pyyaml toml
