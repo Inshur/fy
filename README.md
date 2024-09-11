@@ -1,5 +1,7 @@
 # Fy
 
+[![Docker Image](https://github.com/Inshur/fy/actions/workflows/tag.yml/badge.svg?branch=main)](https://github.com/Inshur/fy/actions/workflows/tag.yml)
+
 F-Yeah!
 
 ## Description
