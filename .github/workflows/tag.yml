@@ -5,6 +5,8 @@ on:
   push:
     tags:
       - '**'
+    branches:
+      - main
     paths:
       - .github/workflows/tag.yml
       - Dockerfile
@@ -17,8 +19,8 @@ on:
 
 jobs:
   build:
+    name: Build & Push to GAR
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       id-token: write
@@ -65,6 +67,7 @@ jobs:
         with:
           cache-from: type=registry,ref=europe-west2-docker.pkg.dev/inshur-prod0-repo0/inshur-docker/fy:cache
           cache-to: type=registry,ref=europe-west2-docker.pkg.dev/inshur-prod0-repo0/inshur-docker/fy:cache,mode=max
+          # Do not push to registry when pushing to a PR
           push: ${{ github.event_name != 'pull_request' }}
           file: Dockerfile
           tags: ${{ steps.docker_meta.outputs.tags }}
