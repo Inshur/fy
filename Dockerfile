@@ -6,7 +6,6 @@ ENV TERRAFORM_VERSION=1.2.9
 ENV KUBE_SCORE_VERSION=1.11.0
 ENV TFSEC_VERSION=1.27.6
 ENV KAPP_VERSION=0.35.0
-ENV OPA_VERSION=0.49.2
 
 RUN \
   apt-get update \
@@ -36,7 +35,6 @@ RUN \
   > /bin/kapp \
   && chmod +x /bin/kapp
 
-
 RUN \
   curl -L https://github.com/zegl/kube-score/releases/download/v${KUBE_SCORE_VERSION}/kube-score_${KUBE_SCORE_VERSION}_linux_amd64 \
   > /bin/kube-score \
@@ -46,11 +44,6 @@ RUN \
   curl -L https://github.com/liamg/tfsec/releases/download/v${TFSEC_VERSION}/tfsec-linux-amd64 \
   > /bin/tfsec \
   && chmod +x /bin/tfsec
-
-RUN \
-  curl -L https://github.com/open-policy-agent/opa/releases/download/v${OPA_VERSION}/opa_linux_amd64_static \
-  > /bin/opa \
-  && chmod +x /bin/opa
 
 RUN \
   mkdir fy
