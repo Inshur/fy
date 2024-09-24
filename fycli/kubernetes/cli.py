@@ -561,7 +561,7 @@ class K8sCLI:
                     kube_score(
                         kubectl.kustomize(*kubectl_args),
                         "score",
-                        "--kubernetes-version=v1.14",
+                        "--kubernetes-version=v1.28",
                         "-v",
                         "-",
                         _ok_code=[0, 1],
@@ -579,7 +579,7 @@ class K8sCLI:
                 ):
                     output = kube_score(
                         "score",
-                        "--kubernetes-version=v1.14",
+                        "--kubernetes-version=v1.28",
                         "-v",
                         manifest,
                         _ok_code=[0, 1],
